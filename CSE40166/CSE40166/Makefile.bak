@@ -1,0 +1,72 @@
+INSTALL_DIR = /Users/jpaone/Desktop
+SOIL_INC_DIR = /Users/jpaone/Desktop/include
+
+MAJOR_VERSION = 1
+MINOR_VERSION = 2
+
+CXX    = g++
+CFLAGS = -Wall -g
+
+ifeq ($(shell uname), Darwin)
+    LIBS = -framework GLUT -framework OpenGL -framework Cocoa
+else
+    LIBS = -lglut -lGL -lGLU
+endif
+
+FREEGLUT = /afs/nd.edu/user37/ccl/software/external/freeglut
+ifneq "$(wildcard $(FREEGLUT))" ""
+    INCPATH += -I$(FREEGLUT)/include
+endif
+
+INCPATH += -I$(SOIL_INC_DIR)
+
+all: compile
+
+clean:
+	rm -f *.o
+
+depend:
+	rm -f Makefile.bak
+	mv Makefile Makefile.bak
+	sed '/^# DEPENDENCIES/,$$d' Makefile.bak > Makefile
+	echo '# DEPENDENCIES' >> Makefile
+	$(CXX) -MM *.cpp >> Makefile
+
+.c.o: 	
+	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+.cc.o: 	
+	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+.cpp.o: 	
+	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+compile: Point.o Object.o Material.o Vector.o Camera.o PointBase.o Light.o PointLight.o DirectionalLight.o SpotLight.o Face.o CSE40166.o
+
+install:
+	ar rcs libCSE40166.$(MAJOR_VERSION).$(MINOR_VERSION).a *.o
+	mkdir -p $(INSTALL_DIR)/lib
+	mv libCSE40166.$(MAJOR_VERSION).$(MINOR_VERSION).a $(INSTALL_DIR)/lib/.
+	ln -fs $(INSTALL_DIR)/lib/libCSE40166.$(MAJOR_VERSION).$(MINOR_VERSION).a $(INSTALL_DIR)/lib/libCSE40166.a
+	mkdir -p $(INSTALL_DIR)/include
+	mkdir -p $(INSTALL_DIR)/include/CSE40166
+	cp *.h $(INSTALL_DIR)/include/CSE40166/.
+
+# DEPENDENCIES
+Camera.o: Camera.cpp Camera.h Object.h Face.h Material.h Point.h \
+  PointBase.h Vector.h
+DirectionalLight.o: DirectionalLight.cpp DirectionalLight.h Light.h \
+  Vector.h PointBase.h
+Face.o: Face.cpp Face.h Material.h Point.h PointBase.h Vector.h
+Light.o: Light.cpp Light.h
+Material.o: Material.cpp Material.h
+Object.o: Object.cpp Object.h Face.h Material.h Point.h PointBase.h \
+  Vector.h
+Point.o: Point.cpp Point.h PointBase.h Vector.h
+PointBase.o: PointBase.cpp PointBase.h
+PointLight.o: PointLight.cpp PointLight.h Light.h Point.h PointBase.h \
+  Vector.h
+SpotLight.o: SpotLight.cpp SpotLight.h Light.h Point.h PointBase.h \
+  Vector.h
+Vector.o: Vector.cpp Vector.h PointBase.h
+
