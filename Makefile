@@ -60,6 +60,7 @@ endif
 
 # GLEW includes
 ifeq ($(shell uname), Darwin)
+	INCPATH += -I/usr/local/include
 	LIBS += -lGLEW
 else
 	GLEW += /linux/include/for/GLEW
