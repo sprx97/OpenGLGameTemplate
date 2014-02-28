@@ -16,7 +16,7 @@
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glu.h>
 	
-	#include <ALUT/alut.h>
+	#include <AL/alut.h>
 	#include <OpenAL/al.h>
 	#include <OpenAL/alc.h>
 #else
