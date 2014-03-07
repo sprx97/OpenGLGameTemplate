@@ -291,12 +291,6 @@ void drawCameras() {
 	This function draws the entire scene
 */
 void display() {
-	glClearColor(0, 0, 0, 1); // black
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
 	drawCameras();
 	drawLighting();
 
@@ -319,12 +313,24 @@ void display() {
 		// draw overlays
 	glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
-	
+}
+
+/* void displayMulti()
+	This function displays to multiple viewports
+*/
+void displayMulti() {
+	glClearColor(0, 0, 0, 1); // black
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	display();
+
 	glUseProgram(0); // no GLSL shader program
-	
-	drawFPS();
-	// draw debug info
-	
+
+	drawFPS(); // draws FPS to screen
+
 	glutSwapBuffers();
 }
 
@@ -725,7 +731,7 @@ int main(int argc, char* argv[]) {
 	
 	glutKeyboardFunc(key_press);
 	glutKeyboardUpFunc(key_release);
-	glutDisplayFunc(display);
+	glutDisplayFunc(displayMulti);
 	glutReshapeFunc(resize);
 	glutMouseFunc(mouse_click);
 	glutMotionFunc(mouse_motion);
