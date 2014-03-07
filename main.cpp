@@ -48,8 +48,8 @@ using namespace CSE40166;
 using namespace OVR;
 
 // OVR Init
-bool RIFT = TRUE;
-System::Init(Log::ConfigureDefaultLog(LogMask_All));
+bool RIFT = true;
+//System::Init(Log::ConfigureDefaultLog(LogMask_All));
 
 int width = 1280, height = 750; // width and height in windowed mode
 int lastframe = 0; // time last frame was rendered at
