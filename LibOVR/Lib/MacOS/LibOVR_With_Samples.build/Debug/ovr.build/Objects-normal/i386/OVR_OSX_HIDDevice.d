@@ -1,4 +1,5 @@
-dependencies: /Users/Ryan/Code/OculusSDK/LibOVR/Src/OVR_OSX_HIDDevice.cpp \
+dependencies: \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/OVR_OSX_HIDDevice.cpp \
   ../LibOVR/Src/OVR_OSX_HIDDevice.h ../LibOVR/Src/OVR_HIDDevice.h \
   ../LibOVR/Src/OVR_HIDDeviceBase.h ../LibOVR/Src/Kernel/OVR_Types.h \
   ../LibOVR/Src/Kernel/OVR_RefCount.h \

@@ -1,4 +1,4 @@
-dependencies: /Users/Ryan/Code/OculusSDK/LibOVR/Src/OVR_JSON.cpp \
+dependencies: /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/OVR_JSON.cpp \
   ../LibOVR/Src/OVR_JSON.h ../LibOVR/Src/Kernel/OVR_RefCount.h \
   ../LibOVR/Src/Kernel/OVR_Types.h ../LibOVR/Src/Kernel/OVR_Allocator.h \
   ../LibOVR/Src/Kernel/OVR_String.h ../LibOVR/Src/Kernel/OVR_UTF8Util.h \

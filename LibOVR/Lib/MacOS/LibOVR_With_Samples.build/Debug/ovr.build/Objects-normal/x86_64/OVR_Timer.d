@@ -1,4 +1,5 @@
-dependencies: /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Timer.cpp \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Timer.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Types.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Log.h
+dependencies: \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Timer.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Timer.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Types.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Log.h

@@ -1,4 +1,5 @@
-dependencies: /Users/Ryan/Code/OculusSDK/LibOVR/Src/OVR_DeviceImpl.cpp \
+dependencies: \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/OVR_DeviceImpl.cpp \
   ../LibOVR/Src/OVR_DeviceImpl.h ../LibOVR/Src/OVR_Device.h \
   ../LibOVR/Src/OVR_DeviceConstants.h ../LibOVR/Src/OVR_DeviceHandle.h \
   ../LibOVR/Src/OVR_DeviceMessages.h ../LibOVR/Src/Kernel/OVR_Math.h \

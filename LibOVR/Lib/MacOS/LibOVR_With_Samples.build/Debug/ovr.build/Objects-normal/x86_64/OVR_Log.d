@@ -1,4 +1,5 @@
-dependencies: /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Log.cpp \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Log.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Types.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Std.h
+dependencies: \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Log.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Log.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Types.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Std.h

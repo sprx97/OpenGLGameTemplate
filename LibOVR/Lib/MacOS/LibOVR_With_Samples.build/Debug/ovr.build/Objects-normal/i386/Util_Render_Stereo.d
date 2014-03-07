@@ -1,7 +1,7 @@
 dependencies: \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/Util_Render_Stereo.cpp \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/Util_Render_Stereo.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/../OVR_Device.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/Util_Render_Stereo.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/Util_Render_Stereo.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/../OVR_Device.h \
   ../LibOVR/Src/OVR_DeviceConstants.h ../LibOVR/Src/OVR_DeviceHandle.h \
   ../LibOVR/Src/OVR_DeviceMessages.h ../LibOVR/Src/Kernel/OVR_Math.h \
   ../LibOVR/Src/Kernel/OVR_Types.h ../LibOVR/Src/Kernel/OVR_RefCount.h \

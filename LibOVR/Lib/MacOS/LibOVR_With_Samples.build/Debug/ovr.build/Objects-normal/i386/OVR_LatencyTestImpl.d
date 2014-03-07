@@ -1,5 +1,5 @@
 dependencies: \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/OVR_LatencyTestImpl.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/OVR_LatencyTestImpl.cpp \
   ../LibOVR/Src/OVR_LatencyTestImpl.h ../LibOVR/Src/OVR_HIDDeviceImpl.h \
   ../LibOVR/Src/OVR_DeviceImpl.h ../LibOVR/Src/OVR_Device.h \
   ../LibOVR/Src/OVR_DeviceConstants.h ../LibOVR/Src/OVR_DeviceHandle.h \

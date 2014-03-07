@@ -1,5 +1,5 @@
 dependencies: \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/OVR_ThreadCommandQueue.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/OVR_ThreadCommandQueue.cpp \
   ../LibOVR/Src/OVR_ThreadCommandQueue.h \
   ../LibOVR/Src/Kernel/OVR_Types.h ../LibOVR/Src/Kernel/OVR_List.h \
   ../LibOVR/Src/Kernel/OVR_Atomic.h ../LibOVR/Src/Kernel/OVR_Threads.h \

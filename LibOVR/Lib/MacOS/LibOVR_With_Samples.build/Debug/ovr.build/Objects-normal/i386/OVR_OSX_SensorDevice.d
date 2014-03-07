@@ -1,5 +1,5 @@
 dependencies: \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/OVR_OSX_SensorDevice.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/OVR_OSX_SensorDevice.cpp \
   ../LibOVR/Src/OVR_OSX_HMDDevice.h ../LibOVR/Src/OVR_DeviceImpl.h \
   ../LibOVR/Src/OVR_Device.h ../LibOVR/Src/OVR_DeviceConstants.h \
   ../LibOVR/Src/OVR_DeviceHandle.h ../LibOVR/Src/OVR_DeviceMessages.h \

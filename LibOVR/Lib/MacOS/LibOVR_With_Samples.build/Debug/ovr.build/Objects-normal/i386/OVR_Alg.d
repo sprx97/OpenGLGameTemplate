@@ -1,2 +1,3 @@
-dependencies: /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Alg.cpp \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Kernel/OVR_Types.h
+dependencies: \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Alg.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Kernel/OVR_Types.h

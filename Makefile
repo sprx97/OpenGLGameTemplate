@@ -1,7 +1,7 @@
 TARGET = main
 
 CXX = g++
-CFLAGS = -Wall -g -w
+CFLAGS = -Wall -g -w -fno-rtti
 
 ifeq ($(shell uname), Darwin)
 	LIBS = -framework OpenGL -framework Cocoa
@@ -84,6 +84,7 @@ LIBS += -lSOIL
 LibOVR = LibOVR
 LIBPATH += -L$(LibOVR)/Lib/MacOS/Release
 INCPATH += -I$(LibOVR)/include
+LIBS += -lovr
 
 all: $(TARGET)
 

@@ -1,7 +1,7 @@
 dependencies: \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/Util_LatencyTest.cpp \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/Util_LatencyTest.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/../OVR_Device.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/Util_LatencyTest.cpp \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/Util_LatencyTest.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/../OVR_Device.h \
   ../LibOVR/Src/OVR_DeviceConstants.h ../LibOVR/Src/OVR_DeviceHandle.h \
   ../LibOVR/Src/OVR_DeviceMessages.h ../LibOVR/Src/Kernel/OVR_Math.h \
   ../LibOVR/Src/Kernel/OVR_Types.h ../LibOVR/Src/Kernel/OVR_RefCount.h \
@@ -11,6 +11,6 @@ dependencies: \
   ../LibOVR/Src/Kernel/OVR_Color.h ../LibOVR/Src/OVR_HIDDeviceBase.h \
   ../LibOVR/Src/Kernel/OVR_Atomic.h ../LibOVR/Src/Kernel/OVR_String.h \
   ../LibOVR/Src/Kernel/OVR_UTF8Util.h ../LibOVR/Src/Kernel/OVR_Alg.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/../Kernel/OVR_List.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/../Kernel/OVR_Log.h \
-  /Users/Ryan/Code/OculusSDK/LibOVR/Src/Util/../Kernel/OVR_Timer.h
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/../Kernel/OVR_List.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/../Kernel/OVR_Log.h \
+  /Users/Jeremy/Desktop/OculusSDK/LibOVR/Src/Util/../Kernel/OVR_Timer.h
