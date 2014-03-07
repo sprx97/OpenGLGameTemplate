@@ -45,6 +45,11 @@
 
 using namespace std;
 using namespace CSE40166;
+using namespace OVR;
+
+// OVR Init
+bool RIFT = TRUE;
+System::Init(Log::ConfigureDefaultLog(LogMask_All));
 
 int width = 1280, height = 750; // width and height in windowed mode
 int lastframe = 0; // time last frame was rendered at
@@ -101,7 +106,6 @@ void resize(int w, int h) {
 	width = w;
 	height = h;
 	glViewport(0, 0, w, h);
-	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45.0, width/(float)height, .1, 100000);
@@ -120,6 +124,9 @@ void key_press(unsigned char key, int x, int y) {
 		} else {
 			CAMERA = ARCCAM;
 		}
+	}
+	if(key == 'r') {
+		RIFT = !RIFT; 
 	}
 	// one-time immediate actions by key go here
 
