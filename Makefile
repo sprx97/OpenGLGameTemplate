@@ -80,6 +80,11 @@ INCPATH += -I$(SOIL)/include
 LIBPATH += -L$(SOIL)/lib
 LIBS += -lSOIL
 
+# OVR includes
+LibOVR = LibOVR
+LIBPATH += -L$(LibOVR)/Lib/MacOS/Release
+INCPATH += -I$(LibOVR)/include
+
 all: $(TARGET)
 
 clean:

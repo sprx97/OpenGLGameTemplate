@@ -11,6 +11,7 @@
 	work on the Windows ones.
 */
 #include <GL/glew.h>
+#include "OVR.h"
 #ifdef __APPLE__
 	#include <GLUT/glut.h>
 	#include <OpenGL/gl.h>
