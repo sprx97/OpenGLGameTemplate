@@ -70,7 +70,7 @@ Camera* firstpersoncam = NULL;
 int CAMERA = ARCCAM;
 /* Two Cameras
 	The Arcball Camera is the standard camera that focuses on one object
-	and can zoom and rotate around it. The first person camera loks in the
+	and can zoom and rotate around it. The first person camera looks in the
 	direction the user is facing from the user's position.
 */
 
@@ -113,7 +113,13 @@ void resize(int w, int h) {
 */
 void key_press(unsigned char key, int x, int y) {
 	if(key == GLUT_ESC_KEY) exit(0);
-
+	if(key == 'c') {
+		if (CAMERA == ARCCAM) {
+			CAMERA = FIRSTPERSONCAM;
+		} else {
+			CAMERA = ARCCAM;
+		}
+	}
 	// one-time immediate actions by key go here
 
 	keys[key] = 1;
@@ -147,7 +153,7 @@ void mouse_click(int button, int state, int x, int y) {
 	for example).
 	
 	Updates global variables to the new x and y for later use. Also updates 
-	how far the mosue has moved since the last call to motion 
+	how far the mouse has moved since the last call to motion 
 	(mousedx and mousedy).
 */
 void mouse_motion(int x, int y) {
