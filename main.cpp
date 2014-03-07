@@ -47,9 +47,9 @@ using namespace std;
 using namespace CSE40166;
 using namespace OVR;
 
-// OVR Init
 bool RIFT = true;
-//System::Init(Log::ConfigureDefaultLog(LogMask_All));
+// OVR Init
+
 
 int width = 1280, height = 750; // width and height in windowed mode
 int lastframe = 0; // time last frame was rendered at
@@ -332,7 +332,18 @@ void displayMulti() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	display();
+	if(RIFT) {
+		glViewport(0, 0, width/2, height);
+		// look from left eye
+		display();
+		// left eye
+		
+		glViewport(width/2, 0, width, height);
+		// look from right eye
+		display();
+		// right eye
+	}
+	else display();
 
 	glUseProgram(0); // no GLSL shader program
 
@@ -695,6 +706,8 @@ int main(int argc, char* argv[]) {
 	}
 	printf("System supports OpenGL2.0 and GLSL!\n\n");
 	// checks GL Version
+
+	OVR::System::Init(); // init Oculus Rift
 
 	glEnable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
