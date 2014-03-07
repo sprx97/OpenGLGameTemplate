@@ -342,8 +342,12 @@ void displayMulti() {
 		// look from right eye
 		display();
 		// right eye
-	}
-	else display();
+	} // Rift mode displays from two eyes
+	else {
+		glViewport(0, 0, width, height);
+		// basic projection
+		display();
+	} // regular mode
 
 	glUseProgram(0); // no GLSL shader program
 
