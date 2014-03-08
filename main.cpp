@@ -188,13 +188,13 @@ void drawGrid() {
 	glDisable(GL_LIGHTING);
 	glColor3f(1, 1, 1); // white
 	glBegin(GL_LINES);
-		for(double x = 0.0; x < mapwidth; x += delta) {
-			for(double z = 0.0; z < mapheight; z += delta) {
+		for(double x = 0.0; x < mapwidth-delta; x += delta) {
+			for(double z = 0.0; z < mapheight-delta; z += delta) {
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z+delta-mapheight/2.0);
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 	
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapwidth/2.0);
-				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			}
 		}
 	glEnd();
