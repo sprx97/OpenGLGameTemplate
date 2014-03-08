@@ -345,7 +345,7 @@ void displayMulti() {
 	} // Rift mode displays from two eyes
 	else {
 		glViewport(0, 0, width, height);
-		// basic projection
+		// basic projections
 		display();
 	} // regular mode
 
