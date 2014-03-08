@@ -98,7 +98,7 @@ float skyboxwidth = 2000;
 GLuint vertshader, fragshader, shaderprogram;
 // GLSL shaders
 
-#define delta .25
+#define delta .1
 #define mapwidth 50
 #define mapheight 50
 #define tilefactor 10.0
@@ -106,6 +106,7 @@ double heightmap[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 // height of each point on the grid
 
 GLuint sandtexture; // texture for terrain
+GLuint groundList; // call list for terrain
 
 /* void resize(int w, int h)
 	GLUT reshpae function. Sets the width and height variables to the
@@ -188,7 +189,6 @@ void mouse_motion(int x, int y) {
 	Draws a white grid on the ground (for debugging).
 */
 void drawGrid() {
-//	glDisable(GL_LIGHTING);
 	glColor4f(1, 1, 1, 1); // white
 	glBindTexture(GL_TEXTURE_2D, sandtexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -198,26 +198,25 @@ void drawGrid() {
 	glBegin(GL_TRIANGLE_STRIP);
 		for(double x = 0.0; x < mapwidth-delta; x += delta) {
 			for(double z = 0.0; z < mapheight-delta; z += delta) {
-				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
 				glNormal3f(0, 1, 0);
+				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 								
-				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glNormal3f(0, 1, 0);
+				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
 				
-				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
 				glNormal3f(0, 1, 0);
+				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapwidth/2.0);
 				
-				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
 				glNormal3f(0, 1, 0);
+				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			}
 		}
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
 }
 
 /* void drawAxes()
@@ -334,7 +333,7 @@ void display() {
 	glEnable(GL_NORMALIZE);
 
 	glPushMatrix();
-		drawGrid();
+		glCallList(groundList);
 		drawAxes();
 		glCallList(skyboxindex);
 	glPopMatrix();
@@ -379,6 +378,7 @@ void displayMulti() {
 
 	glUseProgram(0); // no GLSL shader program
 
+	glViewport(0, 0, width, height);
 	drawFPS(); // writes FPS to screen
 
 	glutSwapBuffers();
@@ -787,6 +787,12 @@ int main(int argc, char* argv[]) {
 	
 	sandtexture = loadTexture("sand.jpg");
 	initHeightmap();
+	groundList = glGenLists(1);
+	glNewList(groundList, GL_COMPILE);
+		drawGrid();
+	glEndList();
+	// initializes a (hopefully) randomly generated terrain
+	
 	// initSkybox(NAME)
 	initLighting();
 	initMaterials();
