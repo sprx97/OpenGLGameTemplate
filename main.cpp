@@ -98,6 +98,12 @@ float skyboxwidth = 2000;
 GLuint vertshader, fragshader, shaderprogram;
 // GLSL shaders
 
+#define delta .25
+#define mapwidth 50
+#define mapheight 50
+double heightmap[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+// height of each point on the grid
+
 /* void resize(int w, int h)
 	GLUT reshpae function. Sets the width and height variables to the
 	new width and height of the screen.
@@ -182,12 +188,14 @@ void drawGrid() {
 	glDisable(GL_LIGHTING);
 	glColor3f(1, 1, 1); // white
 	glBegin(GL_LINES);
-		for(double x = -10.0; x <= 10.01; x += 1) {
-			glVertex3f(x, 0, -10);
-			glVertex3f(x, 0, 10);
-
-			glVertex3f(-10, 0, x);
-			glVertex3f(10, 0, x);
+		for(double x = 0.0; x < mapwidth; x += delta) {
+			for(double z = 0.0; z < mapheight; z += delta) {
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z+delta-mapheight/2.0);
+	
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapwidth/2.0);
+				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+			}
 		}
 	glEnd();
 	glEnable(GL_LIGHTING);
@@ -278,7 +286,7 @@ void drawLighting() {
 	This function orients the cameras
 */
 void drawCameras() {
-	arccam->setRadius(15.0);
+	arccam->setRadius(50.0);
 	arccam->setTheta(M_PI/3.0);
 	arccam->setPhi(-2.0*M_PI/3.0);
 	arccam->followObject(dummyObject);
@@ -690,6 +698,17 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
+/* void initHeightmap()
+	Randomizes the heights of the terrain
+*/
+void initHeightmap() {
+	for(int x = 0; x < mapwidth/delta; x++) {
+		for(int z = 0; z < mapheight/delta; z++) {
+			heightmap[x][z] = 0.0;
+		}
+	}
+}
+
 int main(int argc, char* argv[]) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -727,7 +746,7 @@ int main(int argc, char* argv[]) {
 	// create objects
 	
 	arccam = new Camera(ARCBALLCAM);
-	arccam->setRadius(15.0);
+	arccam->setRadius(50.0);
 	arccam->setTheta(M_PI/3.0);
 	arccam->setPhi(-2.0*M_PI/3.0);
 	arccam->followObject(dummyObject);
@@ -741,6 +760,7 @@ int main(int argc, char* argv[]) {
 	firstpersoncam->look();
 	// create cameras
 	
+	initHeightmap();
 	// initSkybox(NAME)
 	initLighting();
 	initMaterials();
