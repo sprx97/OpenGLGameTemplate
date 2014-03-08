@@ -188,30 +188,31 @@ void mouse_motion(int x, int y) {
 	Draws a white grid on the ground (for debugging).
 */
 void drawGrid() {
-	glDisable(GL_LIGHTING);
+//	glDisable(GL_LIGHTING);
 	glColor4f(1, 1, 1, 1); // white
 	glBindTexture(GL_TEXTURE_2D, sandtexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_TRIANGLE_STRIP);
 		for(double x = 0.0; x < mapwidth-delta; x += delta) {
 			for(double z = 0.0; z < mapheight-delta; z += delta) {
-				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
-				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-//				glNormal3f(0,1,0);
-
-				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
-				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
-//				glNormal3f(0,1,0);
-
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
+				glNormal3f(0, 1, 0);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
-//				glNormal3f(0,1,0);
-
+								
+				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
+				glNormal3f(0, 1, 0);
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+				
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
+				glNormal3f(0, 1, 0);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapwidth/2.0);
-//				glNormal3f(0,1,0);
+				
+				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
+				glNormal3f(0, 1, 0);
+				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			}
 		}
 	glEnd();
@@ -290,7 +291,7 @@ void drawFPS() {
 	glPopMatrix();
 }
 
-// Functions for drawing on the screen for overlays and debug
+// Can add more functions for drawing on the screen for overlays and debug
 
 /* void drawLighting()
 	Shines the lights from their location.
@@ -329,14 +330,14 @@ void display() {
 
 	// bind shaders if necessary
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+
 	glPushMatrix();
 		drawGrid();
 		drawAxes();
 		glCallList(skyboxindex);
 	glPopMatrix();
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
 
 	// bind and display textures
 	// draw non-textured GL objects
@@ -378,7 +379,7 @@ void displayMulti() {
 
 	glUseProgram(0); // no GLSL shader program
 
-	drawFPS(); // draws FPS to screen
+	drawFPS(); // writes FPS to screen
 
 	glutSwapBuffers();
 }
