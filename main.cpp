@@ -337,8 +337,9 @@ void displayMulti() {
 		// look from left eye
 		display();
 		// left eye
-		
-		glViewport(width/2, 0, width, height);
+
+		glLoadIdentity();
+		glViewport(width/2, 0, width/2, height);
 		// look from right eye
 		display();
 		// right eye
