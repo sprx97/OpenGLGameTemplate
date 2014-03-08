@@ -101,8 +101,11 @@ GLuint vertshader, fragshader, shaderprogram;
 #define delta .25
 #define mapwidth 50
 #define mapheight 50
+#define tilefactor 10.0
 double heightmap[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 // height of each point on the grid
+
+GLuint sandtexture; // texture for terrain
 
 /* void resize(int w, int h)
 	GLUT reshpae function. Sets the width and height variables to the
@@ -186,18 +189,33 @@ void mouse_motion(int x, int y) {
 */
 void drawGrid() {
 	glDisable(GL_LIGHTING);
-	glColor3f(1, 1, 1); // white
-	glBegin(GL_LINES);
+	glColor4f(1, 1, 1, 1); // white
+	glBindTexture(GL_TEXTURE_2D, sandtexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_TRIANGLE_STRIP);
 		for(double x = 0.0; x < mapwidth-delta; x += delta) {
 			for(double z = 0.0; z < mapheight-delta; z += delta) {
+				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
-	
-				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapwidth/2.0);
+//				glNormal3f(0,1,0);
+
+				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
+//				glNormal3f(0,1,0);
+
+				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
+//				glNormal3f(0,1,0);
+
+				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
+				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapwidth/2.0);
+//				glNormal3f(0,1,0);
 			}
 		}
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
 }
 
@@ -286,7 +304,7 @@ void drawLighting() {
 	This function orients the cameras
 */
 void drawCameras() {
-	arccam->setRadius(50.0);
+	arccam->setRadius(15.0);
 	arccam->setTheta(M_PI/3.0);
 	arccam->setPhi(-2.0*M_PI/3.0);
 	arccam->followObject(dummyObject);
@@ -678,9 +696,14 @@ int setupShaders() {
 		loads the texture with the given file name
 */
 GLuint loadTexture(string texname) {
-	// SOIL_load_OGL_texture
-	// glBindTexture
-	// Texture parameters
+	GLuint tex = SOIL_load_OGL_texture(texname.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	return tex;
 }
 
 /* void initSounds()
@@ -704,6 +727,7 @@ void initSounds() {
 void initHeightmap() {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
+//			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
 			heightmap[x][z] = 0.0;
 		}
 	}
@@ -746,7 +770,7 @@ int main(int argc, char* argv[]) {
 	// create objects
 	
 	arccam = new Camera(ARCBALLCAM);
-	arccam->setRadius(50.0);
+	arccam->setRadius(15.0);
 	arccam->setTheta(M_PI/3.0);
 	arccam->setPhi(-2.0*M_PI/3.0);
 	arccam->followObject(dummyObject);
@@ -760,6 +784,7 @@ int main(int argc, char* argv[]) {
 	firstpersoncam->look();
 	// create cameras
 	
+	sandtexture = loadTexture("sand.jpg");
 	initHeightmap();
 	// initSkybox(NAME)
 	initLighting();
