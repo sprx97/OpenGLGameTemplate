@@ -41,13 +41,14 @@
 #include <iostream>
 #include <math.h>
 #include <string>
+#include <vector>
 // C++ libraries
 
 using namespace std;
 using namespace CSE40166;
 using namespace OVR;
 
-bool RIFT = true;
+bool RIFT = false;
 // OVR Init
 
 
@@ -103,6 +104,7 @@ GLuint vertshader, fragshader, shaderprogram;
 #define mapheight 50
 #define tilefactor 10.0
 double heightmap[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+Vector normals[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 // height of each point on the grid
 
 GLuint sandtexture; // texture for terrain
@@ -195,27 +197,35 @@ void drawGrid() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glEnable(GL_TEXTURE_2D);
-	glBegin(GL_TRIANGLE_STRIP);
-		for(double x = 0.0; x < mapwidth-delta; x += delta) {
-			for(double z = 0.0; z < mapheight-delta; z += delta) {
-				glNormal3f(0, 1, 0);
+	for(double z = 0.0; z < mapheight-delta; z += delta) {
+		glBegin(GL_TRIANGLE_STRIP);
+			for(double x = 0.0; x < mapwidth-delta; x += delta*2) {
+				glNormal3f(normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].getX(),
+						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].getY(),
+						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].getZ());
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
-								
-				glNormal3f(0, 1, 0);
+
+				glNormal3f(normals[(int)(x/mapwidth)][(int)(z/mapheight)].getX(),
+						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].getY(),
+						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].getZ());
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-				
-				glNormal3f(0, 1, 0);
+
+				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].getX(),
+						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].getY(),
+						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].getZ());
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapwidth/2.0);
 				
-				glNormal3f(0, 1, 0);
+				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].getX(),
+						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].getY(),
+						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].getZ());
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			}
-		}
-	glEnd();
+		glEnd();
+	}
 	glDisable(GL_TEXTURE_2D);
 }
 
@@ -416,7 +426,7 @@ void initLighting() {
 
 	pointLight = new PointLight(0);
 
-	GLfloat color[4] = {.5, .5, .5, 1.0};
+	GLfloat color[4] = {.7, .7, .7, 1.0};
 	pointLight->setDiffuse(color);
 	pointLight->setSpecular(color);
 	pointLight->setAmbient(color);
@@ -722,16 +732,68 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
-/* void initHeightmap()
-	Randomizes the heights of the terrain
+/* void initTerrain()
+	Randomizes the heights of the terrain and its normals
 */
-void initHeightmap() {
+void initTerrain() {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 //			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
 			heightmap[x][z] = 0.0;
 		}
-	}
+	} // heights
+	
+	// actually this probably should be an object. Can I create an object without importing? Probalby!
+	
+	vector<Face> faces;
+	for(double z = 0.0; z < mapheight-delta; z += delta*2) {
+		vector<Point> points;
+		for(double x = 0.0; x < mapwidth-delta; x += delta) {
+			Point p1(
+				(x-mapwidth/2.0),
+				(heightmap[(int)(x/delta)][(int)(z/delta)+1]),
+				(z+delta-mapheight/2.0)
+			); points.push_back(p1);
+			Point p2(
+				(x-mapwidth/2.0),
+				(heightmap[(int)(x/delta)][(int)(z/delta)]),
+				(z-mapheight/2.0)
+			); points.push_back(p2);
+			Point p3(
+				(x+delta-mapwidth/2.0),
+				(heightmap[(int)(x/delta)+1][(int)(z/delta)+1]),
+				(z+delta-mapheight/2.0)
+			); points.push_back(p3);
+			Point p4(
+				(x+delta-mapwidth/2.0),
+				(heightmap[(int)(x/delta)+1][(int)(z/delta)]),
+				(z-mapheight/2.0)
+			); points.push_back(p4);
+		} // all the points in this strip
+		for(int n = 0; n < points.size()-2; n++) {
+			Face f;
+			f.setP(points[n]);
+			f.setQ(points[n+1]);
+			f.setR(points[n+2]);
+			faces.push_back(f);
+		} // makes each face
+	} // list of all points in the triangle strip
+
+	for(double z = 0.0; z < mapheight-delta; z += delta) {
+		for(double x = 0.0; x < mapwidth-delta; x += delta) {
+			normals[(int)(x/delta)][(int)(z/delta)] = Vector(0, 0, 0);
+			Point mypoint = Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+			// find all adjacent points
+//			for(int n = 0; n < faces.size(); n++) {
+//				if(faces[n].getP() == mypoint) normals[(int)(x/delta)][(int)(z/delta)] += faces[n].getPNormal();
+//				if(faces[n].getQ() == mypoint) normals[(int)(x/delta)][(int)(z/delta)] += faces[n].getQNormal();
+//				if(faces[n].getR() == mypoint) normals[(int)(x/delta)][(int)(z/delta)] += faces[n].getRNormal();
+//			}
+//			normals[(int)(x/delta)][(int)(z/delta)].normalize();
+//			cout << normals[(int)(x/delta)][(int)(z/delta)].getX() << " " << normals[(int)(x/delta)][(int)(z/delta)].getY() << " " << normals[(int)(x/delta)][(int)(z/delta)].getZ() << endl;
+			normals[(int)(x/delta)][(int)(z/delta)] = Vector(0, 1, 0);
+		}
+	} // calculates normals
 }
 
 int main(int argc, char* argv[]) {
@@ -786,7 +848,7 @@ int main(int argc, char* argv[]) {
 	// create cameras
 	
 	sandtexture = loadTexture("sand.jpg");
-	initHeightmap();
+	initTerrain();
 	groundList = glGenLists(1);
 	glNewList(groundList, GL_COMPILE);
 		drawGrid();
