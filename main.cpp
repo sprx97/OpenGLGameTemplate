@@ -739,59 +739,45 @@ void initTerrain() {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 //			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
-			heightmap[x][z] = 0.0;
+			heightmap[x][z] = sin(z/50.0);
+//			heightmap[x][z] = 0.0;
 		}
 	} // heights
 	
-	// actually this probably should be an object. Can I create an object without importing? Probalby!
-	
-	vector<Face> faces;
-	for(double z = 0.0; z < mapheight-delta; z += delta*2) {
-		vector<Point> points;
-		for(double x = 0.0; x < mapwidth-delta; x += delta) {
-			Point p1(
-				(x-mapwidth/2.0),
-				(heightmap[(int)(x/delta)][(int)(z/delta)+1]),
-				(z+delta-mapheight/2.0)
-			); points.push_back(p1);
-			Point p2(
-				(x-mapwidth/2.0),
-				(heightmap[(int)(x/delta)][(int)(z/delta)]),
-				(z-mapheight/2.0)
-			); points.push_back(p2);
-			Point p3(
-				(x+delta-mapwidth/2.0),
-				(heightmap[(int)(x/delta)+1][(int)(z/delta)+1]),
-				(z+delta-mapheight/2.0)
-			); points.push_back(p3);
-			Point p4(
-				(x+delta-mapwidth/2.0),
-				(heightmap[(int)(x/delta)+1][(int)(z/delta)]),
-				(z-mapheight/2.0)
-			); points.push_back(p4);
-		} // all the points in this strip
-		for(int n = 0; n < points.size()-2; n++) {
-			Face f;
-			f.setP(points[n]);
-			f.setQ(points[n+1]);
-			f.setR(points[n+2]);
-			faces.push_back(f);
-		} // makes each face
-	} // list of all points in the triangle strip
+	// actually this probably should be an object. Can I create an object without importing it? Probalby!
 
-	for(double z = 0.0; z < mapheight-delta; z += delta) {
-		for(double x = 0.0; x < mapwidth-delta; x += delta) {
+	for(double z = 0.0; z < mapheight; z += delta) {
+		for(double x = 0.0; x < mapwidth; x += delta) {
+			Point* myPoint = new Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+			Point* adjPoints[6] = { NULL }; // max 6 adjacent points
+			if(x > 0.0 && z > 0.0) // up and left
+				adjPoints[0] = new Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)-1], z-delta-mapheight/2.0);
+			if(z > 0.0) // up
+				adjPoints[1] = new Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)-1], z-delta-mapheight/2.0);
+			if(x < mapwidth-delta) // right
+				adjPoints[2] = new Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
+			if(x < mapwidth-delta && z < mapheight-delta) // down right
+				adjPoints[3] = new Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapheight/2.0);
+			if(z < mapheight-delta) // down
+				adjPoints[4] = new Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
+			if(x > 0.0) // left
+				adjPoints[5] = new Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)], z-mapheight/2.0);
+			// all adjacent points
+
 			normals[(int)(x/delta)][(int)(z/delta)] = Vector(0, 0, 0);
-			Point mypoint = Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-			// find all adjacent points
-//			for(int n = 0; n < faces.size(); n++) {
-//				if(faces[n].getP() == mypoint) normals[(int)(x/delta)][(int)(z/delta)] += faces[n].getPNormal();
-//				if(faces[n].getQ() == mypoint) normals[(int)(x/delta)][(int)(z/delta)] += faces[n].getQNormal();
-//				if(faces[n].getR() == mypoint) normals[(int)(x/delta)][(int)(z/delta)] += faces[n].getRNormal();
-//			}
-//			normals[(int)(x/delta)][(int)(z/delta)].normalize();
-//			cout << normals[(int)(x/delta)][(int)(z/delta)].getX() << " " << normals[(int)(x/delta)][(int)(z/delta)].getY() << " " << normals[(int)(x/delta)][(int)(z/delta)].getZ() << endl;
-			normals[(int)(x/delta)][(int)(z/delta)] = Vector(0, 1, 0);
+			if(adjPoints[0] != NULL && adjPoints[1] != NULL)
+				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[1])-*myPoint, *(adjPoints[0])-*myPoint);
+			if(adjPoints[1] != NULL && adjPoints[2] != NULL)
+				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[2])-*myPoint, *(adjPoints[1])-*myPoint);
+			if(adjPoints[2] != NULL && adjPoints[3] != NULL)
+				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[3])-*myPoint, *(adjPoints[2])-*myPoint);
+			if(adjPoints[3] != NULL && adjPoints[4] != NULL)
+				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[4])-*myPoint, *(adjPoints[3])-*myPoint);
+			if(adjPoints[4] != NULL && adjPoints[5] != NULL)
+				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[5])-*myPoint, *(adjPoints[4])-*myPoint);
+			if(adjPoints[5] != NULL && adjPoints[0] != NULL)
+				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[0])-*myPoint, *(adjPoints[5])-*myPoint);
+			normals[(int)(x/delta)][(int)(z/delta)].normalize();
 		}
 	} // calculates normals
 }
