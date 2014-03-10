@@ -53,7 +53,7 @@ using namespace OVR;
 bool RIFT = false;
 // OVR Init
 
-// keybindings
+// default keybindings
 char key_Forward = 'w';
 char key_Backward = 's';
 char key_Right = 'd';
@@ -742,26 +742,26 @@ void readKeyBindings() {
 	bool isBind = false;
 	int bindCount = 0;
 	char *savedKeys, *tempBind;
-	char bindings[20];
+	vector<char> bindings;
 	readTextFile("KeyBindings.txt", savedKeys);
 	tempBind = strtok(savedKeys, " ");
 	while(tempBind != NULL) {
 		if (isBind) {
-				//	bindings[bindCount] = tempBind;
+			bindings.push_back(*tempBind);
+			//printf ("%s\n", tempBind);
 			isBind = !isBind;
 			bindCount++;
 		}else {
 			isBind = !isBind;
 		}
-		printf ("%s\n", tempBind);
-		tempBind = strtok (NULL, " ");
+		tempBind = strtok (NULL, " \n");
 	}
-	/*key_Forward = bindings[0];
+	key_Forward = bindings[0];
 	key_Backward = bindings[1];
 	key_Right = bindings[2];
 	key_Left = bindings[3];
 	key_Change_Camera = bindings[4];
-	key_Enable_Oculus = bindings[5];*/
+	key_Enable_Oculus = bindings[5];
 }
 
 /*	void printLog(GLuint handle)
