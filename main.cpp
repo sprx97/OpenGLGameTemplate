@@ -744,7 +744,27 @@ void initTerrain() {
 		}
 	} // heights
 	
-	// actually this probably should be an object. Can I create an object without importing it? Probalby!
+	/* 
+		http://blog.habrador.com/2013/02/how-to-generate-random-terrain.html
+		
+		heightmaps can be generated in many ways... One simple option for a single-terrain map
+		is a hill algorithm (http://www.stuffwithstuff.com/robot-frog/3d/hills/hill.html). This 
+		algorithm creates randomly-sized bumps at random points. That would be nice to add some
+		variation to a flat stage.
+		
+		Another option is the Value Noise algorithm (http://lodev.org/cgtutor/randomnoise.html).
+		This algorithm generates a random noise array and smoothing it, then overlaying different
+		sizes of the smoothed array. This can be applied to different initial images to generate
+		things like clouds, marble, or wood. Can also be done in 3D (clouds?)
+		
+		Perlin Noise is similar to Value Noise but I haven't read up on it yet so I'n not sure where
+		it differs. http://www.float4x4.net/index.php/2010/06/generating-realistic-and-playable-terrain-height-maps/
+		
+		Apparently the collision on uneven terrain can be done with surface/vertex normals, too. Good
+		thing I spent so much time calculating those.
+	*/
+	
+	// actually this probably should be an obj//ect. Can I create an object without importing it? Probalby!
 
 	for(double z = 0.0; z < mapheight; z += delta) {
 		for(double x = 0.0; x < mapwidth; x += delta) {
