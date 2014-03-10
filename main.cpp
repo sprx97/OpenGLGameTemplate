@@ -739,7 +739,7 @@ void initTerrain() {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 //			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
-			heightmap[x][z] = sin(z/50.0);
+			heightmap[x][z] = sin(z/25.0);
 //			heightmap[x][z] = 0.0;
 		}
 	} // heights
