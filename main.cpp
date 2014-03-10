@@ -61,7 +61,9 @@ char key_Left = 'a';
 char key_Change_Camera = 'c';
 char key_Enable_Oculus = 'r';
 
+bool fullscreen = false;
 int width = 1280, height = 750; // width and height in windowed mode
+int y_mouse_offset = 0; // offset to properly calculate mousey in windowed mode
 int lastframe = 0; // time last frame was rendered at
 float MAX_FPS = 60.0; // FPS cap
 float bodyYaw = 3.1*M_PI/2.0, bodyPitch = -.1*M_PI, bodyRoll = 0.0; // body orientation values. Controls camera when not using rift
@@ -134,10 +136,19 @@ GLuint groundList; // call list for terrain
 void resize(int w, int h) {
 	width = w;
 	height = h;
+	firstmousepos = false;
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45.0, width/(float)height, .1, 100000);
+#ifdef __APPLE__
+		CGPoint warpPoint= CGPointMake(width/2, height/2);
+		CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+		CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+#ifdef __linux__
+		glutWarpPointer(width/x, height/2);
+#endif
 }
 
 /* void key_press(unsigned char key, int x, int y)
@@ -196,7 +207,9 @@ void mouse_click(int button, int state, int x, int y) {
 void mouse_motion(int x, int y) {
 	if(firstmousepos) {
 		mousedx = x - mousex;
-		mousedy = y - mousey;
+		mousedy = (y_mouse_offset + y) - mousey;
+	}else {
+		y_mouse_offset = (height - (2*y))/2;
 	}
 	
 	bodyPitch -= mousedy * mousespeed;
@@ -210,6 +223,7 @@ void mouse_motion(int x, int y) {
 
 	mousex = x;
 	mousey = y;
+
 	firstmousepos = true;
 }
 
@@ -253,6 +267,32 @@ void drawGrid() {
 		glEnd();
 	}
 	glDisable(GL_TEXTURE_2D);
+}
+
+/* void drawDebugInfo()
+	This function writes a bunch of info to the top of the screen
+*/
+void drawDebugInfo() {
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(0, 1, 0, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	// set up for text to screen
+	
+	glDisable(GL_LIGHTING);
+	glColor3f(1.0, 1.0, 1.0);
+	char *info = new char[1000];
+	sprintf(info, "x=%0.1f  y=%0.1f  z=%0.1f  broll=%0.3f  bpitch=%0.3f  byaw=%0.3f mousedx=%0.1d mousedy=%0.1d", bodyPos->getX(), bodyPos->getY(), bodyPos->getZ(), bodyRoll, bodyPitch, bodyYaw, mousedx, mousedy);
+	glRasterPos2f(0, .98);
+	for(int n = 0; n < (int)strlen(info); n++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, info[n]);
+	}
+	glEnable(GL_LIGHTING);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
 }
 
 /* void drawAxes()
@@ -430,6 +470,7 @@ void displayMulti() {
 
 	glViewport(0, 0, width, height);
 	drawFPS(); // writes FPS to screen
+	drawDebugInfo(); // writes debug info to screen
 
 	glutSwapBuffers();
 }
@@ -475,7 +516,7 @@ void timer(int val) {
 	mousey = height/2;
 
 #ifdef __APPLE__
-	//CGPoint warpPoint= CGPointMake(width/2, height/2);
+	CGPoint warpPoint= CGPointMake(width/2, height/2);
 	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
 	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
@@ -911,7 +952,17 @@ int main(int argc, char* argv[]) {
 	glutInitWindowSize(width, height);
 	alutInit(&argc, argv);
 	glutCreateWindow("Demo");
-	// create window
+	glutSetCursor(GLUT_CURSOR_NONE); 
+	if(fullscreen) glutFullScreen();
+#ifdef __APPLE__
+		CGPoint warpPoint= CGPointMake(width/2, height/2);
+		CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+		CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+#ifdef __linux__
+		glutWarpPointer(width/x, height/2);
+#endif
+	// create window and center mouse
 	
 	CSE40166::CSE40166Init(true, true); // using GLUT and ALUT
 
