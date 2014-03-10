@@ -21,7 +21,7 @@
 	#include <OpenAL/al.h>
 	#include <OpenAL/alc.h>
 
-//	#include <QuartzCore/QuartzCore.h> // Apple pointer warp
+	#include <QuartzCore/QuartzCore.h> // Apple pointer warp
 #else
 	#include <GL/glut.h>
 	#include <GL/gl.h>
@@ -47,7 +47,7 @@
 // C++ libraries
 
 using namespace std;
-using namespace CSE40166;
+//using namespace CSE40166;
 using namespace OVR;
 
 bool RIFT = false;
@@ -68,7 +68,7 @@ float bodyYaw = 3.1*M_PI/2.0, bodyPitch = -.1*M_PI, bodyRoll = 0.0; // body orie
 float headYaw = 3.1*M_PI/2.0, headPitch = -.1*M_PI, headRoll = 0.0; // head orientation values. Controls camera when using rift
 
 float movespeed = 0.1;
-float mousespeed = 0.003;
+float mousespeed = 0.002;
 int GLUT_ESC_KEY = 27;
 char keys[256]; // struct for storing which keys are down
 
@@ -83,8 +83,8 @@ ALuint source[NUM_SOURCES];
 ALuint buffer[NUM_SOUNDS];
 // sounds
 
-Camera* arccam = NULL;
-Camera* firstpersoncam = NULL;
+CSE40166::Camera* arccam = NULL;
+CSE40166::Camera* firstpersoncam = NULL;
 #define ARCCAM 0
 #define FIRSTPERSONCAM 1
 int CAMERA = ARCCAM;
@@ -94,18 +94,18 @@ int CAMERA = ARCCAM;
 	direction the user is facing from the user's position.
 */
 
-PointLight* pointLight;
+CSE40166::PointLight* pointLight;
 // a single light
 
-Material* defaultwhite;
+CSE40166::Material* defaultwhite;
 // materials
 
-Object* dummyObject;
-Object* body;
-Object* head;
-Point* point;
-Point* bodyPos;
-Point* headPos;
+CSE40166::Object* dummyObject;
+CSE40166::Object* body;
+CSE40166::Object* head;
+CSE40166::Point* point;
+CSE40166::Point* bodyPos;
+CSE40166::Point* headPos;
 // just an example
 
 GLuint skybox[6];
@@ -121,7 +121,7 @@ GLuint vertshader, fragshader, shaderprogram;
 #define mapheight 50
 #define tilefactor 10.0
 double heightmap[(int)(mapwidth/delta)][(int)(mapheight/delta)];
-Vector normals[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+CSE40166::Vector normals[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 // height of each point on the grid
 
 GLuint sandtexture; // texture for terrain
@@ -351,18 +351,18 @@ void drawCameras() {
 	float dz = cos(bodyPitch)*cos(bodyYaw);
 
 	if(RIFT) {
-		firstpersoncam->setEye(new Point(headPos->getX() + dx, headPos->getY() + dy, headPos->getZ() + dz));
-		firstpersoncam->setLookAt(new Point(headPos->getX() + 2*dx,
+		firstpersoncam->setEye(new CSE40166::Point(headPos->getX() + dx, headPos->getY() + dy, headPos->getZ() + dz));
+		firstpersoncam->setLookAt(new CSE40166::Point(headPos->getX() + 2*dx,
 											headPos->getY() + 2*dy,
 											headPos->getZ() + 2*dz));
 	}else {
-		firstpersoncam->setEye(new Point(bodyPos->getX() + dx, bodyPos->getY() + dy, bodyPos->getZ() + dz));
-		firstpersoncam->setLookAt(new Point(bodyPos->getX() + 2*dx,
+		firstpersoncam->setEye(new CSE40166::Point(bodyPos->getX() + dx, bodyPos->getY() + dy, bodyPos->getZ() + dz));
+		firstpersoncam->setLookAt(new CSE40166::Point(bodyPos->getX() + 2*dx,
 											bodyPos->getY() + 2*dy,
 											bodyPos->getZ() + 2*dz));
 	}
 	//firstpersoncam->setLookAt(new Point(0,0,0));
-	firstpersoncam->setUp(new Vector(0, 1, 0));
+	firstpersoncam->setUp(new CSE40166::Vector(0, 1, 0));
 	
 	if(CAMERA == ARCCAM) arccam->look();
 	else if(CAMERA == FIRSTPERSONCAM) firstpersoncam->look();
@@ -432,12 +432,6 @@ void displayMulti() {
 	drawFPS(); // writes FPS to screen
 
 	glutSwapBuffers();
-/*#ifdef __APPLE__
-	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
-#endif
-#ifdef __linux__
-	glutWarpPointer(width/2, height/2);
-#endif*/
 }
 
 /* float distance(float x1, float y1, float z1, float x2, float y2, float z2)
@@ -474,6 +468,21 @@ void timer(int val) {
 	headPos->setX(bodyPos->getX());
 	headPos->setY(bodyPos->getY());
 	headPos->setZ(bodyPos->getZ());
+
+	width = glutGet(GLUT_WINDOW_WIDTH);
+	height = glutGet(GLUT_WINDOW_HEIGHT);
+	mousex = width/2;
+	mousey = height/2;
+
+#ifdef __APPLE__
+	//CGPoint warpPoint= CGPointMake(width/2, height/2);
+	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+	CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+#ifdef __linux__
+	glutWarpPointer(width/x, height/2);
+#endif
+
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
 	glutPostRedisplay();
 }
@@ -488,7 +497,7 @@ void initLighting() {
 
 	glEnable(GL_LIGHTING);
 
-	pointLight = new PointLight(0);
+	pointLight = new CSE40166::PointLight(0);
 
 	GLfloat color[4] = {.7, .7, .7, 1.0};
 	pointLight->setDiffuse(color);
@@ -496,7 +505,7 @@ void initLighting() {
 	pointLight->setAmbient(color);
 	// color
 	
-	pointLight->setPosition(new Point(0.0, 10.0, 0.0));
+	pointLight->setPosition(new CSE40166::Point(0.0, 10.0, 0.0));
 	pointLight->turnLightOn();
 	// position
 }
@@ -505,7 +514,7 @@ void initLighting() {
 	This function initializes all of the materials used in the scene
 */
 void initMaterials() {
-	defaultwhite = new Material(CSE40166_MATERIAL_WHITE);
+	defaultwhite = new CSE40166::Material(CSE40166::CSE40166_MATERIAL_WHITE);
 }
 
 /* void drawSkybox()
@@ -861,23 +870,23 @@ void initTerrain() {
 
 	for(double z = 0.0; z < mapheight; z += delta) {
 		for(double x = 0.0; x < mapwidth; x += delta) {
-			Point* myPoint = new Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-			Point* adjPoints[6] = { NULL }; // max 6 adjacent points
+			CSE40166::Point* myPoint = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+			CSE40166::Point* adjPoints[6] = { NULL }; // max 6 adjacent points
 			if(x > 0.0 && z > 0.0) // up and left
-				adjPoints[0] = new Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)-1], z-delta-mapheight/2.0);
+				adjPoints[0] = new CSE40166::Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)-1], z-delta-mapheight/2.0);
 			if(z > 0.0) // up
-				adjPoints[1] = new Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)-1], z-delta-mapheight/2.0);
+				adjPoints[1] = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)-1], z-delta-mapheight/2.0);
 			if(x < mapwidth-delta) // right
-				adjPoints[2] = new Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
+				adjPoints[2] = new CSE40166::Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			if(x < mapwidth-delta && z < mapheight-delta) // down right
-				adjPoints[3] = new Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapheight/2.0);
+				adjPoints[3] = new CSE40166::Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapheight/2.0);
 			if(z < mapheight-delta) // down
-				adjPoints[4] = new Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
+				adjPoints[4] = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 			if(x > 0.0) // left
-				adjPoints[5] = new Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)], z-mapheight/2.0);
+				adjPoints[5] = new CSE40166::Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)], z-mapheight/2.0);
 			// all adjacent points
 
-			normals[(int)(x/delta)][(int)(z/delta)] = Vector(0, 0, 0);
+			normals[(int)(x/delta)][(int)(z/delta)] = CSE40166::Vector(0, 0, 0);
 			if(adjPoints[0] != NULL && adjPoints[1] != NULL)
 				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[1])-*myPoint, *(adjPoints[0])-*myPoint);
 			if(adjPoints[1] != NULL && adjPoints[2] != NULL)
@@ -904,7 +913,7 @@ int main(int argc, char* argv[]) {
 	glutCreateWindow("Demo");
 	// create window
 	
-	CSE40166Init(true, true); // using GLUT and ALUT
+	CSE40166::CSE40166Init(true, true); // using GLUT and ALUT
 
 	if(glewInit() != GLEW_OK) {
 		printf("Error initializing GLEW\n");
@@ -926,16 +935,16 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	dummyObject = new Object(); // load obj file
+	dummyObject = new CSE40166::Object(); // load obj file
 	dummyObject->getLocation()->setX(0.0);
 	dummyObject->getLocation()->setY(0.0);
 	dummyObject->getLocation()->setZ(0.0);
-	body = new Object();
+	body = new CSE40166::Object();
 	bodyPos = body->getLocation();
 	bodyPos->setX(-5.0);
 	bodyPos->setY(2.0);
 	bodyPos->setZ(0);
-	head = new Object();
+	head = new CSE40166::Object();
 	headPos = head->getLocation();
 	headPos->setX(-5.0);
 	headPos->setY(2.0);
@@ -943,7 +952,7 @@ int main(int argc, char* argv[]) {
 	// load texture for object
 	// create objects
 	
-	arccam = new Camera(ARCBALLCAM);
+	arccam = new CSE40166::Camera(CSE40166::ARCBALLCAM);
 	arccam->setRadius(15.0);
 	arccam->setTheta(M_PI/3.0);
 	arccam->setPhi(-2.0*M_PI/3.0);
@@ -952,10 +961,10 @@ int main(int argc, char* argv[]) {
 	arccam->look();
 
 
-	firstpersoncam = new Camera(OTHER);
-	firstpersoncam->setEye(new Point(-5, 2, 0));
-	firstpersoncam->setLookAt(new Point(0, 0, 0));
-	firstpersoncam->setUp(new Vector(0, 1, 0));
+	firstpersoncam = new CSE40166::Camera(CSE40166::OTHER);
+	firstpersoncam->setEye(new CSE40166::Point(-5, 2, 0));
+	firstpersoncam->setLookAt(new CSE40166::Point(0, 0, 0));
+	firstpersoncam->setUp(new CSE40166::Vector(0, 1, 0));
 	firstpersoncam->look();
 	// create cameras
 	
@@ -985,7 +994,6 @@ int main(int argc, char* argv[]) {
 	glutDisplayFunc(displayMulti);
 	glutReshapeFunc(resize);
 	glutMouseFunc(mouse_click);
-	glutMotionFunc(mouse_motion);
 	glutPassiveMotionFunc(mouse_motion);
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
 	// glut callbacks
