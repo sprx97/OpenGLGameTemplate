@@ -20,6 +20,8 @@
 	#include <AL/alut.h>
 	#include <OpenAL/al.h>
 	#include <OpenAL/alc.h>
+
+//	#include <QuartzCore/QuartzCore.h> // Apple pointer warp
 #else
 	#include <GL/glut.h>
 	#include <GL/gl.h>
@@ -51,11 +53,22 @@ using namespace OVR;
 bool RIFT = false;
 // OVR Init
 
+// keybindings
+char key_Forward = 'w';
+char key_Backward = 's';
+char key_Right = 'd';
+char key_Left = 'a';
+char key_Change_Camera = 'c';
+char key_Enable_Oculus = 'r';
 
 int width = 1280, height = 750; // width and height in windowed mode
 int lastframe = 0; // time last frame was rendered at
 float MAX_FPS = 60.0; // FPS cap
+float bodyYaw = 3.1*M_PI/2.0, bodyPitch = -.1*M_PI, bodyRoll = 0.0; // body orientation values. Controls camera when not using rift
+float headYaw = 3.1*M_PI/2.0, headPitch = -.1*M_PI, headRoll = 0.0; // head orientation values. Controls camera when using rift
 
+float movespeed = 0.1;
+float mousespeed = 0.003;
 int GLUT_ESC_KEY = 27;
 char keys[256]; // struct for storing which keys are down
 
@@ -88,7 +101,11 @@ Material* defaultwhite;
 // materials
 
 Object* dummyObject;
+Object* body;
+Object* head;
 Point* point;
+Point* bodyPos;
+Point* headPos;
 // just an example
 
 GLuint skybox[6];
@@ -130,14 +147,14 @@ void resize(int w, int h) {
 */
 void key_press(unsigned char key, int x, int y) {
 	if(key == GLUT_ESC_KEY) exit(0);
-	if(key == 'c') {
+	if(key == key_Change_Camera) {
 		if (CAMERA == ARCCAM) {
 			CAMERA = FIRSTPERSONCAM;
 		} else {
 			CAMERA = ARCCAM;
 		}
 	}
-	if(key == 'r') {
+	if(key == key_Enable_Oculus) {
 		RIFT = !RIFT; 
 	}
 	// one-time immediate actions by key go here
@@ -182,6 +199,15 @@ void mouse_motion(int x, int y) {
 		mousedy = y - mousey;
 	}
 	
+	bodyPitch -= mousedy * mousespeed;
+	bodyYaw -= mousedx * mousespeed;
+	if(bodyYaw < -M_PI) bodyYaw += M_PI * 2;
+	if(bodyYaw > M_PI) bodyYaw -= M_PI * 2;
+	if(bodyPitch < -M_PI * 0.49) bodyPitch = -M_PI * 0.49;
+	if(bodyPitch > M_PI * 0.49) bodyPitch = M_PI * 0.49;
+	// updates body pitch and yaw based on mouse movement then checks that
+	// camera is in range
+
 	mousex = x;
 	mousey = y;
 	firstmousepos = true;
@@ -319,9 +345,23 @@ void drawCameras() {
 	arccam->setPhi(-2.0*M_PI/3.0);
 	arccam->followObject(dummyObject);
 	arccam->computeArcballPosition();
+	
+	float dx = cos(bodyPitch)*sin(bodyYaw);
+	float dy = sin(bodyPitch);
+	float dz = cos(bodyPitch)*cos(bodyYaw);
 
-	firstpersoncam->setEye(new Point(-5, 2, 0));
-	firstpersoncam->setLookAt(new Point(0, 0, 0));
+	if(RIFT) {
+		firstpersoncam->setEye(new Point(headPos->getX() + dx, headPos->getY() + dy, headPos->getZ() + dz));
+		firstpersoncam->setLookAt(new Point(headPos->getX() + 2*dx,
+											headPos->getY() + 2*dy,
+											headPos->getZ() + 2*dz));
+	}else {
+		firstpersoncam->setEye(new Point(bodyPos->getX() + dx, bodyPos->getY() + dy, bodyPos->getZ() + dz));
+		firstpersoncam->setLookAt(new Point(bodyPos->getX() + 2*dx,
+											bodyPos->getY() + 2*dy,
+											bodyPos->getZ() + 2*dz));
+	}
+	//firstpersoncam->setLookAt(new Point(0,0,0));
 	firstpersoncam->setUp(new Vector(0, 1, 0));
 	
 	if(CAMERA == ARCCAM) arccam->look();
@@ -392,6 +432,12 @@ void displayMulti() {
 	drawFPS(); // writes FPS to screen
 
 	glutSwapBuffers();
+/*#ifdef __APPLE__
+	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+#endif
+#ifdef __linux__
+	glutWarpPointer(width/2, height/2);
+#endif*/
 }
 
 /* float distance(float x1, float y1, float z1, float x2, float y2, float z2)
@@ -409,7 +455,25 @@ float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
 void timer(int val) {
 	// check specific keys and perform actions if pressed
 	// move physics
-	
+	if(keys[key_Forward]) {
+	bodyPos->setX(bodyPos->getX() + movespeed * sin(bodyYaw));
+	bodyPos->setZ(bodyPos->getZ() + movespeed * cos(bodyYaw));
+	}
+	if(keys[key_Backward]) {
+	bodyPos->setX(bodyPos->getX() - movespeed * sin(bodyYaw));
+	bodyPos->setZ(bodyPos->getZ() - movespeed * cos(bodyYaw));
+	}
+	if(keys[key_Left]) {
+	bodyPos->setX(bodyPos->getX() - movespeed * -cos(bodyYaw));
+	bodyPos->setZ(bodyPos->getZ() - movespeed * sin(bodyYaw));
+	}
+	if(keys[key_Right]) {
+	bodyPos->setX(bodyPos->getX() + movespeed * -cos(bodyYaw));
+	bodyPos->setZ(bodyPos->getZ() + movespeed * sin(bodyYaw));
+	}
+	headPos->setX(bodyPos->getX());
+	headPos->setY(bodyPos->getY());
+	headPos->setZ(bodyPos->getZ());
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
 	glutPostRedisplay();
 }
@@ -671,6 +735,35 @@ void readTextFile(string filename, char* &output) {
     in.close();
 }
 
+/*	void readKeyBindings()
+		Reads in key bindings from KeyBindings.txt and updates bindings map.
+*/
+void readKeyBindings() {
+	bool isBind = false;
+	int bindCount = 0;
+	char *savedKeys, *tempBind;
+	char bindings[20];
+	readTextFile("KeyBindings.txt", savedKeys);
+	tempBind = strtok(savedKeys, " ");
+	while(tempBind != NULL) {
+		if (isBind) {
+				//	bindings[bindCount] = tempBind;
+			isBind = !isBind;
+			bindCount++;
+		}else {
+			isBind = !isBind;
+		}
+		printf ("%s\n", tempBind);
+		tempBind = strtok (NULL, " ");
+	}
+	/*key_Forward = bindings[0];
+	key_Backward = bindings[1];
+	key_Right = bindings[2];
+	key_Left = bindings[3];
+	key_Change_Camera = bindings[4];
+	key_Enable_Oculus = bindings[5];*/
+}
+
 /*	void printLog(GLuint handle)
 		prints the log for the program whos handle is passed
 */
@@ -824,6 +917,8 @@ int main(int argc, char* argv[]) {
 	printf("System supports OpenGL2.0 and GLSL!\n\n");
 	// checks GL Version
 
+	readKeyBindings(); // loads key bindings
+
 	OVR::System::Init(); // init Oculus Rift
 
 	glEnable(GL_DEPTH_TEST);
@@ -835,6 +930,16 @@ int main(int argc, char* argv[]) {
 	dummyObject->getLocation()->setX(0.0);
 	dummyObject->getLocation()->setY(0.0);
 	dummyObject->getLocation()->setZ(0.0);
+	body = new Object();
+	bodyPos = body->getLocation();
+	bodyPos->setX(-5.0);
+	bodyPos->setY(2.0);
+	bodyPos->setZ(0);
+	head = new Object();
+	headPos = head->getLocation();
+	headPos->setX(-5.0);
+	headPos->setY(2.0);
+	headPos->setZ(0);
 	// load texture for object
 	// create objects
 	
@@ -845,6 +950,7 @@ int main(int argc, char* argv[]) {
 	arccam->followObject(dummyObject);
 	arccam->computeArcballPosition();
 	arccam->look();
+
 
 	firstpersoncam = new Camera(OTHER);
 	firstpersoncam->setEye(new Point(-5, 2, 0));
