@@ -834,15 +834,66 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
+double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+/* void generateNoise()
+	fills the randomNoise array with random double values from 0 to 1
+*/
+void generateNoise() {
+	for(int x = 0; x < mapwidth/delta; x++) {
+		for(int z = 0; z < mapheight/delta; z++) {
+			randomNoise[x][z] =  (rand() % 32768) / 32768.0;
+		}
+	} // generates a random array of heights
+}
+
+/* double smoothNoise(double x, double y)
+	returns the noise function at a point by interpolating between noise indices
+
+*/
+double smoothNoise(double x, double z) {
+	double xfrac = x-(int)x;
+	double zfrac = z-(int)z;
+	// fractional part of x and y
+	
+	int x1 = (int)((int)x + mapwidth/delta) % ((int)(mapwidth/delta));
+	int z1 = (int)((int)z + mapheight/delta) % ((int)(mapheight/delta));
+	// wrap around
+	
+	int x2 = (int)(x1 + mapwidth/delta - 1) % ((int)(mapwidth/delta));
+	int z2 = (int)(z1 + mapheight/delta - 1) % ((int)(mapheight/delta));
+	// neighbor values
+	
+	double value = 0.0;
+	value += xfrac * zfrac * randomNoise[x1][z1];
+	value += xfrac * (1-zfrac) * randomNoise[x1][z2];
+	value += (1-xfrac) * zfrac * randomNoise[x2][z1];
+	value += (1-xfrac) * (1-zfrac) * randomNoise[x2][z2];
+
+	return value;
+}
+
 /* void initTerrain()
 	Randomizes the heights of the terrain and its normals
 */
 void initTerrain() {
+/*	generateNoise();
+	for(int x = 0; x < mapwidth/delta; x++) {
+		for(int z = 0; z < mapheight/delta; z++) {
+			heightmap[x][z] = 0.0;
+			int startzoom = 256;
+			for(int zoom = startzoom; zoom >= 1; zoom /= 2) {
+				heightmap[x][z] += smoothNoise(x/zoom, z/zoom) * zoom;
+			}
+			heightmap[x][z] /= (1+log(startzoom)/log(2));
+		}
+	}
+	// add different zoom layers of smoothed maps
+*/
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 //			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
-			heightmap[x][z] = sin(z/25.0);
 //			heightmap[x][z] = 0.0;
+			heightmap[x][z] = sin(z/25.0); // combine multiple sine waves
 		}
 	} // heights
 	
@@ -866,7 +917,7 @@ void initTerrain() {
 		thing I spent so much time calculating those.
 	*/
 	
-	// actually this probably should be an obj//ect. Can I create an object without importing it? Probalby!
+	// actually this probably should be an obj. Can I create an object without importing it? Probalby!
 
 	for(double z = 0.0; z < mapheight; z += delta) {
 		for(double x = 0.0; x < mapwidth; x += delta) {
