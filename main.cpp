@@ -478,7 +478,7 @@ glDrawArrays(GL_TRIANGLES, 0, 6);
 void displayMulti() {
 //	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); // all drawing renders to this texture
 
-//	glUseProgram(shaderProgram);
+	glUseProgram(shaderProgram);
 
 	glClearColor(0, 0, 0, 1); // black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
