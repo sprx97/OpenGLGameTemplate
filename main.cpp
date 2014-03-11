@@ -115,8 +115,8 @@ GLuint skyboxindex;
 float skyboxwidth = 2000;
 // background textures
 
-GLuint vertshader, fragshader, shaderprogram;
-// GLSL shaders
+GLuint vertShader, fragShader, shaderProgram; // GLSL shaders
+GLuint framebuffer, renderbuffer, renderedTexture; // for rendering
 
 #define delta .1
 #define mapwidth 50
@@ -424,7 +424,6 @@ void display() {
 
 	glPushMatrix();
 		glCallList(groundList);
-		drawAxes();
 		glCallList(skyboxindex);
 	glPopMatrix();
 
@@ -438,10 +437,49 @@ void display() {
 	glEnable(GL_DEPTH_TEST);
 }
 
+/* void renderFramebufferToScreen()
+	This function takes the texture in the framebuffer and draws it to the screen.
+*/
+void renderFramebufferToScreen() {
+	// needs some sort of post-processing shaders I think
+
+GLuint quad_VertexArrayID;
+/*glGenVertexArrays(1, &quad_VertexArrayID);
+glBindVertexArray(quad_VertexArrayID);
+ 
+static const GLfloat vert_array[] = {
+    -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    -1.0f,  1.0f, 0.0f,
+    -1.0f,  1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    1.0f,  1.0f, 0.0f,
+};
+ 
+GLuint quad_vertexbuffer;
+glGenBuffers(1, &quad_vertexbuffer);
+glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vert_array), vert_array, GL_STATIC_DRAW);
+
+glBindFramebuffer(GL_FRAMEBUFFER, 0);
+glBindVertexArray(quad_VertexArrayID);
+glDisable(GL_DEPTH_TEST);
+glUseProgram(shaderProgram);
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, renderedTexture);
+glDrawArrays(GL_TRIANGLES, 0, 6);
+*/
+	glutSwapBuffers();
+}
+
 /* void displayMulti()
 	This function displays to multiple viewports
 */
 void displayMulti() {
+//	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); // all drawing renders to this texture
+
+	glUseProgram(shaderProgram);
+
 	glClearColor(0, 0, 0, 1); // black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -469,10 +507,11 @@ void displayMulti() {
 	glUseProgram(0); // no GLSL shader program
 
 	glViewport(0, 0, width, height);
+	drawAxes();
 	drawFPS(); // writes FPS to screen
 	drawDebugInfo(); // writes debug info to screen
 
-	glutSwapBuffers();
+	renderFramebufferToScreen();
 }
 
 /* float distance(float x1, float y1, float z1, float x2, float y2, float z2)
@@ -837,12 +876,43 @@ void printLog(GLuint handle) {
 		Compiles and registers our Vertex and Fragment shaders
 */
 int setupShaders() {
-	// read shaders from glsl files
-	// glCreateShader
-	// compile shaders
-	// attach shaders to program
-	// glLinkProgram
-	// repeat as necessary
+	char *vertexShaderString;
+	char *fragmentShaderString;
+	readTextFile("BasicShader.v.glsl", vertexShaderString);
+	readTextFile("BasicShader.f.glsl", fragmentShaderString);
+	// reads each text file into a string
+	
+	vertShader = glCreateShader(GL_VERTEX_SHADER);
+	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	// cretes shaders
+	
+	glShaderSource(vertShader, 1, (const char**)&vertexShaderString, NULL);
+	printLog(vertShader);
+	glShaderSource(fragShader, 1, (const char**)&fragmentShaderString, NULL);
+	printLog(fragShader);
+	// sends each program to the GPU
+	
+	delete[] vertexShaderString;
+	delete[] fragmentShaderString;
+	// frees up memory
+	
+	glCompileShader(vertShader);
+	printLog(vertShader);
+	glCompileShader(fragShader);
+	printLog(fragShader);
+	// compiles shaders on the GPU
+	
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertShader);
+	printLog(vertShader);
+	glAttachShader(shaderProgram, fragShader);
+	printLog(fragShader);
+	// creates a program and attaches the shaders
+	
+	glLinkProgram(shaderProgram);
+	printLog(shaderProgram);
+	// link all programs together on GPU
+
 	return 0;
 }
 
@@ -1017,6 +1087,7 @@ int main(int argc, char* argv[]) {
 	
 	CSE40166::CSE40166Init(true, true); // using GLUT and ALUT
 
+	glewExperimental = GL_TRUE; // has to be the newer version of GLEW
 	if(glewInit() != GLEW_OK) {
 		printf("Error initializing GLEW\n");
 		return 0;
@@ -1062,7 +1133,6 @@ int main(int argc, char* argv[]) {
 	arccam->computeArcballPosition();
 	arccam->look();
 
-
 	firstpersoncam = new CSE40166::Camera(CSE40166::OTHER);
 	firstpersoncam->setEye(new CSE40166::Point(-5, 2, 0));
 	firstpersoncam->setLookAt(new CSE40166::Point(0, 0, 0));
@@ -1090,7 +1160,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 	// setup shaders
-	
+
 	glutKeyboardFunc(key_press);
 	glutKeyboardUpFunc(key_release);
 	glutDisplayFunc(displayMulti);
@@ -1099,6 +1169,42 @@ int main(int argc, char* argv[]) {
 	glutPassiveMotionFunc(mouse_motion);
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
 	// glut callbacks
+
+// ********************************************************
+	
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	// framebuffer
+	
+	glGenTextures(1, &renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+	// texture to render to
+	
+	glGenRenderbuffers(1, &renderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+	// depth render buffer
+
+	// attach framebuffer to texture
+
+	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, DrawBuffers);
+
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		printf("Error creating framebuffer.\n");
+		return 0;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	// reset to regular drawing
+
+// ********************************************************
 	
 //	glutFullScreen();
 	glutMainLoop();
