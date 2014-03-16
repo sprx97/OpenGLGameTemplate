@@ -116,7 +116,7 @@ float skyboxwidth = 2000;
 // background textures
 
 GLuint vertShader, fragShader, shaderProgram; // GLSL shaders
-GLuint framebuffer, renderbuffer, renderedTexture; // for rendering
+// GLuint framebuffer, renderbuffer, renderedTexture; // for rendering
 
 #define delta .1
 #define mapwidth 50
@@ -856,20 +856,22 @@ void readKeyBindings() {
 /*	void printLog(GLuint handle)
 		prints the log for the program whos handle is passed
 */
-void printLog(GLuint handle) {
-	int loglength = 0;
-	int maxlength;
+void printLog(GLuint object) {
+	GLint log_length = 0;
+	if(glIsShader(object)) glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
+	else if(glIsProgram(object)) glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
+	else {
+		fprintf(stderr, "printlog: Not a shader or a program\n");
+		return;
+	}
 	
-	if(glIsShader(handle)) glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &maxlength);
-	else glGetProgramiv(handle, GL_INFO_LOG_LENGTH, &maxlength);
+	char* log = (char*)malloc(log_length);
 	
-	char infolog[maxlength];
+	if(glIsShader(object)) glGetShaderInfoLog(object, log_length, NULL, log);
+	else if(glIsProgram(object)) glGetProgramInfoLog(object, log_length, NULL, log);
 	
-	if(glIsShader(handle)) glGetShaderInfoLog(handle, maxlength, &loglength, infolog);
-	else glGetShaderInfoLog(handle, maxlength, &loglength, infolog);
-	// get info log
-	
-	if(loglength > 0) printf("[INFO]: Shader Handle %d: %s\n", handle, infolog);
+	fprintf(stderr, "%s", log);
+	free(log);
 }
 
 /*	void setupShaders()
@@ -912,7 +914,14 @@ int setupShaders() {
 	glLinkProgram(shaderProgram);
 	printLog(shaderProgram);
 	// link all programs together on GPU
-
+	
+	GLint link_ok = GL_FALSE;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &link_ok);
+	if(!link_ok) {
+		fprintf(stderr, "glLinkProgram: ");
+		return 1;
+	} // checks program link
+	
 	return 0;
 }
 
@@ -1156,7 +1165,7 @@ int main(int argc, char* argv[]) {
 	
 	int shaderResult = setupShaders();
 	if(shaderResult != 0) {
-		printf("Could not open shader files.");
+		printf("Could not open shader files.\n");
 		return 0;
 	}
 	// setup shaders
@@ -1172,7 +1181,7 @@ int main(int argc, char* argv[]) {
 
 // ********************************************************
 	
-	glGenFramebuffers(1, &framebuffer);
+/*	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	// framebuffer
 	
@@ -1201,7 +1210,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);*/
 	// reset to regular drawing
 
 // ********************************************************

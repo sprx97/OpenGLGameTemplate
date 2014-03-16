@@ -1,9 +1,9 @@
-uniform sampler2D texture;
+#version 120
 
+uniform sampler2D texture;
 
 varying vec3 normalVector;
 varying vec3 lightVector;
-
 
 void main(void) {
 	float lamInt = max(0.0, dot(normalVector, lightVector));
