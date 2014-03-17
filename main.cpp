@@ -449,13 +449,9 @@ void display() {
 	glEnable(GL_DEPTH_TEST);
 }
 
-/* void renderFramebufferToScreen()
-	This function takes the texture in the framebuffer and draws it to the screen.
+/* void screenshot(char filename[60], int x, int y)
+	Takes a x-by-y pixel screenshot of the current draw buffer and saves it in filename.
 */
-void renderFramebufferToScreen() {
-
-}
-
 void screenshot (char filename[160],int x, int y) {
 	// get the image data
 	long imageSize = x * y * 3;
@@ -475,6 +471,8 @@ void screenshot (char filename[160],int x, int y) {
 	data=NULL;
 }
 
+#define USE_FRAMEBUFFER
+
 /* void displayMulti()
 	This function displays to multiple viewports
 */
@@ -484,16 +482,19 @@ void displayMulti() {
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// clears the main screen
-
-	glUseProgram(passthroughShader);
+	
+#ifdef USE_FRAMEBUFFER
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); // all drawing renders to this texture
 	glClearColor(0, 0, 0, 1); // black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// clears the framebuffer
+#endif
 
-//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-// uncomment this to just draw to the screen
+	glUseProgram(passthroughShader);
 
+#ifndef USE_FRAMEBUFFER
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -515,14 +516,50 @@ void displayMulti() {
 		display();
 	} // regular mode
 
-	screenshot("test.tga", width, height);
+#ifdef USE_FRAMEBUFFER
+//	screenshot("test.tga", width, height);
 
-	glUseProgram(0); // no GLSL shader program
+	glUseProgram(0); // should use barrel transform shader
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
+#endif 
+
 	glViewport(0, 0, width, height);
-	renderFramebufferToScreen(); // draw framebuffer
-	drawAxes();
+#ifdef USE_FRAMEBUFFER
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0.0, width, 0.0, height, -1.0, .99);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glDisable(GL_LIGHTING);
+	glColor3f(1, 1, 1);
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex3f(0, 0, 0);
+		glTexCoord2f(0, 1); glVertex3f(0, height, 0);
+		glTexCoord2f(1, 1); glVertex3f(width, height, 0);
+		glTexCoord2f(1, 0); glVertex3f(width, 0, 0);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_LIGHTING);
+
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+#endif // renders framebuffer to screen
+
+	glUseProgram(0);
+	
+//	drawGrid();
+//	drawAxes();
 	drawFPS(); // writes FPS to screen
 	drawDebugInfo(); // writes debug info to screen
 
@@ -1188,8 +1225,7 @@ int main(int argc, char* argv[]) {
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
 	// glut callbacks
 
-// ********************************************************
-	
+#ifdef USE_FRAMEBUFFER
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	// framebuffer
@@ -1228,9 +1264,8 @@ int main(int argc, char* argv[]) {
 	glGenBuffers(1, &quad_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+#endif
 
-// ********************************************************
-	
 //	glutFullScreen();
 	glutMainLoop();
 	return 0;
