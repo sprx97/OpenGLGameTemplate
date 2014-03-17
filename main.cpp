@@ -115,8 +115,20 @@ GLuint skyboxindex;
 float skyboxwidth = 2000;
 // background textures
 
-GLuint vertShader, fragShader, shaderProgram; // GLSL shaders
-// GLuint framebuffer, renderbuffer, renderedTexture; // for rendering
+GLuint passthroughShader; // GLSL shaders
+
+/************************************************/
+GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
+static const GLfloat g_quad_vertex_buffer_data[] = {
+	-1.0f, -1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	1.0f,  1.0f, 0.0f,
+};
+GLuint quad_VertexArrayID, quad_vertexbuffer, quad_programID;
+/************************************************/
 
 #define delta .1
 #define mapwidth 50
@@ -441,47 +453,46 @@ void display() {
 	This function takes the texture in the framebuffer and draws it to the screen.
 */
 void renderFramebufferToScreen() {
-	// needs some sort of post-processing shaders I think
 
-GLuint quad_VertexArrayID;
-/*glGenVertexArrays(1, &quad_VertexArrayID);
-glBindVertexArray(quad_VertexArrayID);
- 
-static const GLfloat vert_array[] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    -1.0f,  1.0f, 0.0f,
-    -1.0f,  1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    1.0f,  1.0f, 0.0f,
-};
- 
-GLuint quad_vertexbuffer;
-glGenBuffers(1, &quad_vertexbuffer);
-glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vert_array), vert_array, GL_STATIC_DRAW);
+}
 
-glBindFramebuffer(GL_FRAMEBUFFER, 0);
-glBindVertexArray(quad_VertexArrayID);
-glDisable(GL_DEPTH_TEST);
-glUseProgram(shaderProgram);
-glActiveTexture(GL_TEXTURE0);
-glBindTexture(GL_TEXTURE_2D, renderedTexture);
-glDrawArrays(GL_TRIANGLES, 0, 6);
-*/
-	glutSwapBuffers();
+void screenshot (char filename[160],int x, int y) {
+	// get the image data
+	long imageSize = x * y * 3;
+	unsigned char *data = new unsigned char[imageSize];
+	glReadPixels(0,0,x,y, GL_BGR,GL_UNSIGNED_BYTE,data);// split x and y sizes into bytes
+	int xa= x % 256;
+	int xb= (x-xa)/256;int ya= y % 256;
+	int yb= (y-ya)/256;//assemble the header
+	unsigned char header[18]={0,0,2,0,0,0,0,0,0,0,0,0,(char)xa,(char)xb,(char)ya,(char)yb,24,0};
+	// write header and data to file
+	fstream File(filename, ios::out | ios::binary);
+	File.write (reinterpret_cast<char *>(header), sizeof (char)*18);
+	File.write (reinterpret_cast<char *>(data), sizeof (char)*imageSize);
+	File.close();
+	
+	delete[] data;
+	data=NULL;
 }
 
 /* void displayMulti()
 	This function displays to multiple viewports
 */
 void displayMulti() {
-//	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); // all drawing renders to this texture
+	glUseProgram(0); // no GLSL shader program
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// clears the main screen
 
-	glUseProgram(shaderProgram);
-
+	glUseProgram(passthroughShader);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); // all drawing renders to this texture
 	glClearColor(0, 0, 0, 1); // black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// clears the framebuffer
+
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+// uncomment this to just draw to the screen
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -504,14 +515,18 @@ void displayMulti() {
 		display();
 	} // regular mode
 
-	glUseProgram(0); // no GLSL shader program
+	screenshot("test.tga", width, height);
 
+	glUseProgram(0); // no GLSL shader program
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	glViewport(0, 0, width, height);
+	renderFramebufferToScreen(); // draw framebuffer
 	drawAxes();
 	drawFPS(); // writes FPS to screen
 	drawDebugInfo(); // writes debug info to screen
 
-	renderFramebufferToScreen();
+	glutSwapBuffers();
 }
 
 /* float distance(float x1, float y1, float z1, float x2, float y2, float z2)
@@ -877,15 +892,15 @@ void printLog(GLuint object) {
 /*	void setupShaders()
 		Compiles and registers our Vertex and Fragment shaders
 */
-int setupShaders() {
+int setupShaders(char* v, char* f) {
 	char *vertexShaderString;
 	char *fragmentShaderString;
-	readTextFile("BasicShader.v.glsl", vertexShaderString);
-	readTextFile("BasicShader.f.glsl", fragmentShaderString);
+	readTextFile(v, vertexShaderString);
+	readTextFile(f, fragmentShaderString);
 	// reads each text file into a string
 	
-	vertShader = glCreateShader(GL_VERTEX_SHADER);
-	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 	// cretes shaders
 	
 	glShaderSource(vertShader, 1, (const char**)&vertexShaderString, NULL);
@@ -904,25 +919,22 @@ int setupShaders() {
 	printLog(fragShader);
 	// compiles shaders on the GPU
 	
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertShader);
+	GLuint program = glCreateProgram();
+	glAttachShader(program, vertShader);
 	printLog(vertShader);
-	glAttachShader(shaderProgram, fragShader);
+	glAttachShader(program, fragShader);
 	printLog(fragShader);
 	// creates a program and attaches the shaders
 	
-	glLinkProgram(shaderProgram);
-	printLog(shaderProgram);
+	glLinkProgram(program);
+	printLog(program);
 	// link all programs together on GPU
 	
 	GLint link_ok = GL_FALSE;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &link_ok);
-	if(!link_ok) {
-		fprintf(stderr, "glLinkProgram: ");
-		return 1;
-	} // checks program link
+	glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
+	if(!link_ok) fprintf(stderr, "glLinkProgram Error ");
 	
-	return 0;
+	return program;
 }
 
 /*	GLuint loadTexture(string texname)
@@ -1163,11 +1175,8 @@ int main(int argc, char* argv[]) {
 	initSounds();
 	// other parts of scene
 	
-	int shaderResult = setupShaders();
-	if(shaderResult != 0) {
-		printf("Could not open shader files.\n");
-		return 0;
-	}
+	passthroughShader = setupShaders("BasicShader.v.glsl", "BasicShader.f.glsl");
+	quad_programID = setupShaders("BasicShader.v.glsl", "BasicShader.f.glsl");
 	// setup shaders
 
 	glutKeyboardFunc(key_press);
@@ -1181,7 +1190,7 @@ int main(int argc, char* argv[]) {
 
 // ********************************************************
 	
-/*	glGenFramebuffers(1, &framebuffer);
+	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	// framebuffer
 	
@@ -1190,15 +1199,15 @@ int main(int argc, char* argv[]) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
 	// texture to render to
-	
-	glGenRenderbuffers(1, &renderbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+
+	glGenRenderbuffers(1, &depthbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
 	// depth render buffer
 
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
 	// attach framebuffer to texture
 
 	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
@@ -1210,8 +1219,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);*/
+	glBindTexture(GL_TEXTURE_2D, 0);
 	// reset to regular drawing
+
+	glGenVertexArrays(1, &quad_VertexArrayID);
+	glBindVertexArray(quad_VertexArrayID);
+	
+	glGenBuffers(1, &quad_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
 
 // ********************************************************
 	
