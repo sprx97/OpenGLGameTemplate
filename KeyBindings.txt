@@ -4,3 +4,4 @@ key_Right d
 key_Left a
 key_Change_Camera c
 key_Enable_Oculus r
+key_Toggle_Fullscreen o

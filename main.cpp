@@ -60,9 +60,10 @@ char key_Right = 'd';
 char key_Left = 'a';
 char key_Change_Camera = 'c';
 char key_Enable_Oculus = 'r';
+char key_Toggle_Fullscreen = 'o';
 
 bool fullscreen = false;
-int width = 1280, height = 750; // width and height in windowed mode
+int width = 1280, height = 800; // width and height in windowed mode
 int y_mouse_offset = 0; // offset to properly calculate mousey in windowed mode
 int lastframe = 0; // time last frame was rendered at
 float MAX_FPS = 60.0; // FPS cap
@@ -165,7 +166,7 @@ void resize(int w, int h) {
 	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-	glutWarpPointer(width/x, height/2);
+	glutWarpPointer(width/2, height/2);
 #endif
 }
 
@@ -185,6 +186,28 @@ void key_press(unsigned char key, int x, int y) {
 	}
 	if(key == key_Enable_Oculus) {
 		RIFT = !RIFT; 
+	}
+	if (key == key_Toggle_Fullscreen) {
+		fullscreen = !fullscreen;
+		firstmousepos = false;
+		y_mouse_offset = 0;
+		if (fullscreen) {
+			glutFullScreen();
+			width = glutGet(GLUT_WINDOW_WIDTH);
+            height = glutGet(GLUT_WINDOW_HEIGHT);
+		}else {
+			glutReshapeWindow(1280,800);
+            width = glutGet(GLUT_WINDOW_WIDTH);
+            height = glutGet(GLUT_WINDOW_HEIGHT);
+		}
+#ifdef __APPLE__
+		CGPoint warpPoint= CGPointMake(width/2, height/2);
+		CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+		CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+#ifdef __linux__
+		glutWarpPointer(width/2, height/2);
+#endif
 	}
 	// one-time immediate actions by key go here
 
@@ -617,7 +640,7 @@ void timer(int val) {
 	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-	glutWarpPointer(width/x, height/2);
+	glutWarpPointer(width/2, height/2);
 #endif
 
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
@@ -908,6 +931,7 @@ void readKeyBindings() {
 	key_Left = bindings[3];
 	key_Change_Camera = bindings[4];
 	key_Enable_Oculus = bindings[5];
+	key_Toggle_Fullscreen = bindings[6];
 }
 
 /*	void printLog(GLuint handle)
@@ -1145,7 +1169,7 @@ int main(int argc, char* argv[]) {
 	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-	glutWarpPointer(width/x, height/2);
+	glutWarpPointer(width/2, height/2);
 #endif
 	// create window and center mouse
 	
