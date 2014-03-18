@@ -63,7 +63,7 @@ char key_Enable_Oculus = 'r';
 char key_Toggle_Fullscreen = 'o';
 
 bool fullscreen = false;
-int width = 1280, height = 750; // width and height in windowed mode
+int width = 1280, height = 800; // width and height in windowed mode
 int y_mouse_offset = 0; // offset to properly calculate mousey in windowed mode
 int lastframe = 0; // time last frame was rendered at
 float MAX_FPS = 60.0; // FPS cap
@@ -153,7 +153,7 @@ void resize(int w, int h) {
 		CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-		glutWarpPointer(width/x, height/2);
+		glutWarpPointer(width/2, height/2);
 #endif
 }
 
@@ -183,7 +183,7 @@ void key_press(unsigned char key, int x, int y) {
 			width = glutGet(GLUT_WINDOW_WIDTH);
             height = glutGet(GLUT_WINDOW_HEIGHT);
 		}else {
-			glutReshapeWindow(1280,750);
+			glutReshapeWindow(1280,800);
             width = glutGet(GLUT_WINDOW_WIDTH);
             height = glutGet(GLUT_WINDOW_HEIGHT);
 		}
@@ -193,7 +193,7 @@ void key_press(unsigned char key, int x, int y) {
 		CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-		glutWarpPointer(width/x, height/2);
+		glutWarpPointer(width/2, height/2);
 #endif
 	}
 	// one-time immediate actions by key go here
@@ -627,7 +627,7 @@ void timer(int val) {
 	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-	glutWarpPointer(width/x, height/2);
+	glutWarpPointer(width/2, height/2);
 #endif
 
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
@@ -1155,7 +1155,7 @@ int main(int argc, char* argv[]) {
 		CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-		glutWarpPointer(width/x, height/2);
+		glutWarpPointer(width/2, height/2);
 #endif
 	// create window and center mouse
 	
