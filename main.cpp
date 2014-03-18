@@ -60,6 +60,7 @@ char key_Right = 'd';
 char key_Left = 'a';
 char key_Change_Camera = 'c';
 char key_Enable_Oculus = 'r';
+char key_Toggle_Fullscreen = 'o';
 
 bool fullscreen = false;
 int width = 1280, height = 750; // width and height in windowed mode
@@ -172,6 +173,28 @@ void key_press(unsigned char key, int x, int y) {
 	}
 	if(key == key_Enable_Oculus) {
 		RIFT = !RIFT; 
+	}
+	if (key == key_Toggle_Fullscreen) {
+		fullscreen = !fullscreen;
+		firstmousepos = false;
+		y_mouse_offset = 0;
+		if (fullscreen) {
+			glutFullScreen();
+			width = glutGet(GLUT_WINDOW_X);
+            height = glutGet(GLUT_WINDOW_Y);
+		}else {
+			glutReshapeWindow(1280,750);
+            width = glutGet(GLUT_WINDOW_X);
+            height = glutGet(GLUT_WINDOW_Y);
+		}
+#ifdef __APPLE__
+		CGPoint warpPoint= CGPointMake(width/2, height/2);
+		CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+		CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+#ifdef __linux__
+		glutWarpPointer(width/x, height/2);
+#endif
 	}
 	// one-time immediate actions by key go here
 
@@ -895,6 +918,7 @@ void readKeyBindings() {
 	key_Left = bindings[3];
 	key_Change_Camera = bindings[4];
 	key_Enable_Oculus = bindings[5];
+	key_Toggle_Fullscreen = bindings[6];
 }
 
 /*	void printLog(GLuint handle)
