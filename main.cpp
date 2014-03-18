@@ -146,13 +146,26 @@ void resize(int w, int h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45.0, width/(float)height, .1, 100000);
+
+#ifdef USE_FRAMEBUFFER
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	// resizes renderedTexture
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	// resizes renderbuffer
+#endif
+	
 #ifdef __APPLE__
-		CGPoint warpPoint= CGPointMake(width/2, height/2);
-		CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
-		CGAssociateMouseAndMouseCursorPosition(true);
+	CGPoint warpPoint= CGPointMake(width/2, height/2);
+	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-		glutWarpPointer(width/x, height/2);
+	glutWarpPointer(width/x, height/2);
 #endif
 }
 
@@ -593,8 +606,8 @@ void timer(int val) {
 	headPos->setY(bodyPos->getY());
 	headPos->setZ(bodyPos->getZ());
 
-	width = glutGet(GLUT_WINDOW_WIDTH);
-	height = glutGet(GLUT_WINDOW_HEIGHT);
+//	width = glutGet(GLUT_WINDOW_WIDTH);
+//	height = glutGet(GLUT_WINDOW_HEIGHT);
 	mousex = width/2;
 	mousey = height/2;
 
@@ -1125,13 +1138,14 @@ int main(int argc, char* argv[]) {
 	glutCreateWindow("Demo");
 	glutSetCursor(GLUT_CURSOR_NONE); 
 	if(fullscreen) glutFullScreen();
+	
 #ifdef __APPLE__
-		CGPoint warpPoint= CGPointMake(width/2, height/2);
-		CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
-		CGAssociateMouseAndMouseCursorPosition(true);
+	CGPoint warpPoint= CGPointMake(width/2, height/2);
+	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
-		glutWarpPointer(width/x, height/2);
+	glutWarpPointer(width/x, height/2);
 #endif
 	// create window and center mouse
 	
