@@ -180,12 +180,12 @@ void key_press(unsigned char key, int x, int y) {
 		y_mouse_offset = 0;
 		if (fullscreen) {
 			glutFullScreen();
-			width = glutGet(GLUT_WINDOW_X);
-            height = glutGet(GLUT_WINDOW_Y);
+			width = glutGet(GLUT_WINDOW_WIDTH);
+            height = glutGet(GLUT_WINDOW_HEIGHT);
 		}else {
 			glutReshapeWindow(1280,750);
-            width = glutGet(GLUT_WINDOW_X);
-            height = glutGet(GLUT_WINDOW_Y);
+            width = glutGet(GLUT_WINDOW_WIDTH);
+            height = glutGet(GLUT_WINDOW_HEIGHT);
 		}
 #ifdef __APPLE__
 		CGPoint warpPoint= CGPointMake(width/2, height/2);
