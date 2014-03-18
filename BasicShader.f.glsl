@@ -10,3 +10,5 @@ void main(void) {
 	vec4 texcolor = texture2D(texture, gl_TexCoord[0].st);
 	gl_FragColor = vec4(vec3(texcolor*gl_LightSource[0].diffuse*lamInt), 1.0);
 }
+
+// I think most of the barr

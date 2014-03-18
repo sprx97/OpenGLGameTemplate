@@ -115,20 +115,13 @@ GLuint skyboxindex;
 float skyboxwidth = 2000;
 // background textures
 
-GLuint passthroughShader; // GLSL shaders
+GLuint passthroughShader, barrelShader; // GLSL shaders
 
-/************************************************/
+#define USE_FRAMEBUFFER
+
+#ifdef USE_FRAMEBUFFER
 GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
-static const GLfloat g_quad_vertex_buffer_data[] = {
-	-1.0f, -1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-	1.0f,  1.0f, 0.0f,
-};
-GLuint quad_VertexArrayID, quad_vertexbuffer, quad_programID;
-/************************************************/
+#endif
 
 #define delta .1
 #define mapwidth 50
@@ -471,13 +464,12 @@ void screenshot (char filename[160],int x, int y) {
 	data=NULL;
 }
 
-#define USE_FRAMEBUFFER
-
 /* void displayMulti()
 	This function displays to multiple viewports
 */
 void displayMulti() {
 	glUseProgram(0); // no GLSL shader program
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -519,7 +511,7 @@ void displayMulti() {
 #ifdef USE_FRAMEBUFFER
 //	screenshot("test.tga", width, height);
 
-	glUseProgram(0); // should use barrel transform shader
+	glUseProgram(barrelShader); // should use barrel transform shader
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif 
 
@@ -1213,7 +1205,7 @@ int main(int argc, char* argv[]) {
 	// other parts of scene
 	
 	passthroughShader = setupShaders("BasicShader.v.glsl", "BasicShader.f.glsl");
-	quad_programID = setupShaders("BasicShader.v.glsl", "BasicShader.f.glsl");
+	barrelShader = setupShaders("BarrelShader.v.glsl", "BarrelShader.f.glsl");
 	// setup shaders
 
 	glutKeyboardFunc(key_press);
@@ -1257,13 +1249,6 @@ int main(int argc, char* argv[]) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	// reset to regular drawing
-
-	glGenVertexArrays(1, &quad_VertexArrayID);
-	glBindVertexArray(quad_VertexArrayID);
-	
-	glGenBuffers(1, &quad_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
 #endif
 
 //	glutFullScreen();
