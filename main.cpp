@@ -136,6 +136,10 @@ CSE40166::Vector normals[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 GLuint sandtexture; // texture for terrain
 GLuint groundList; // call list for terrain
 
+DeviceManager* pManager;
+HMDDevice* pHMD;
+HMDInfo hmdInfo;
+SensorDevice *pSensor;
 StereoConfig sconfig;
 // Oculus rift variables
 
@@ -1167,18 +1171,31 @@ void initTerrain() {
 }
 
 void configOVR() {
-	DeviceManager* pManager = DeviceManager::Create();
-	HMDDevice* pHMD = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
+	pManager = DeviceManager::Create();
+	pHMD = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
+	pSensor = pManager->EnumerateDevices<SensorDevice>().CreateDevice();
+
 	if(pHMD) {
-		HMDInfo hmdInfo;
+        pSensor = pHMD->GetSensor();
 		pHMD->GetDeviceInfo(&hmdInfo);
 		cout << "Connected to " << hmdInfo.DisplayDeviceName << endl;
+
+        // Retrieve relevant profile settings. 
+//        Profile* pUserProfile;
+//		Player ThePlayer;
+//		pUserProfile = pHMD->GetProfile();
+//        if (pUserProfile)
+//        {
+//            ThePlayer.UserEyeHeight = pUserProfile->GetEyeHeight();
+//            ThePlayer.EyePos.y = ThePlayer.UserEyeHeight;
+//        }
 	}
 	else cout << "Could not connect to device." << endl;
 	// connect to device
 
     sconfig.SetFullViewport(Viewport(0, 0, width, height));
     sconfig.SetStereoMode(Stereo_LeftRight_Multipass);
+	sconfig.SetHMDInfo(hmdInfo);
 	// init stereo mode
 }
 
