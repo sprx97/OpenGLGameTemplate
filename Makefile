@@ -4,7 +4,7 @@ CXX = g++
 CFLAGS = -Wall -g -w -fno-rtti
 
 ifeq ($(shell uname), Darwin)
-	LIBS = -framework OpenGL -framework Cocoa -framework ApplicationServices
+	LIBS = -framework OpenGL -framework Cocoa -framework ApplicationServices -framework CoreFoundation -framework IOKit
 else
 	LIBS = -lGL -lGLU
 endif

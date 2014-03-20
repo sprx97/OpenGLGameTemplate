@@ -181,7 +181,7 @@ void resize(int w, int h) {
 */
 void key_press(unsigned char key, int x, int y) {
 	if(key == GLUT_ESC_KEY) {
-		OVR::System::Destroy();
+		// OVR System Destroy?
 		exit(0);
 	}
 	if(key == key_Change_Camera) {
@@ -1167,13 +1167,14 @@ void initTerrain() {
 }
 
 void configOVR() {
-//	DeviceManager* pManager = DeviceManager::Create();
-//	pManager = *DeviceManager.Create();
-	
-//	HMDDevice* pHMD;// = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
-//	HMDInfo hmdInfo;
-//	pHMD->GetDeviceInfo(&hmdInfo);
-//	cout << hmdInfo.DisplayDeviceName << endl;
+	DeviceManager* pManager = DeviceManager::Create();
+	HMDDevice* pHMD = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
+	if(pHMD) {
+		HMDInfo hmdInfo;
+		pHMD->GetDeviceInfo(&hmdInfo);
+		cout << "Connected to " << hmdInfo.DisplayDeviceName << endl;
+	}
+	else cout << "Could not connect to device." << endl;
 	// connect to device
 
     sconfig.SetFullViewport(Viewport(0, 0, width, height));
@@ -1321,6 +1322,5 @@ int main(int argc, char* argv[]) {
 //	glutFullScreen();
 	glutMainLoop();
 	
-	OVR::System::Destroy();
 	return 0;
 }
