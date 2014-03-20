@@ -6,6 +6,8 @@
 //
 //
 
+#define USE_FRAMEBUFFER
+
 /*
 	Here are the defines for Mac and Linux. You'll have to
 	work on the Windows ones.
@@ -49,6 +51,7 @@
 using namespace std;
 //using namespace CSE40166;
 using namespace OVR;
+using namespace OVR::Util::Render;
 
 bool RIFT = false;
 // OVR Init
@@ -118,8 +121,6 @@ float skyboxwidth = 2000;
 
 GLuint passthroughShader, barrelShader; // GLSL shaders
 
-#define USE_FRAMEBUFFER
-
 #ifdef USE_FRAMEBUFFER
 GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 #endif
@@ -134,6 +135,9 @@ CSE40166::Vector normals[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 
 GLuint sandtexture; // texture for terrain
 GLuint groundList; // call list for terrain
+
+StereoConfig sconfig;
+// Oculus rift variables
 
 /* void resize(int w, int h)
 	GLUT reshpae function. Sets the width and height variables to the
@@ -176,7 +180,10 @@ void resize(int w, int h) {
 	location of the mouse at that time.
 */
 void key_press(unsigned char key, int x, int y) {
-	if(key == GLUT_ESC_KEY) exit(0);
+	if(key == GLUT_ESC_KEY) {
+		OVR::System::Destroy();
+		exit(0);
+	}
 	if(key == key_Change_Camera) {
 		if (CAMERA == ARCCAM) {
 			CAMERA = FIRSTPERSONCAM;
@@ -548,6 +555,12 @@ void displayMulti() {
 //	screenshot("test.tga", width, height);
 
 	glUseProgram(barrelShader); // should use barrel transform shader
+	
+/*	GLuint lenscenter = glGetUniformLocation(barrelShader, "LensCenter");
+	float x = 0.0, y = 0.0, w = 1.0, h = 1.0;
+	float lenscenterarray[2] = {x + (w + Distortion.XCenterOffset * 0.5f)*0.5f, y + h*0.5f};
+	glUniform2fv(lenscenter, 1, lenscenterarray);
+*/
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif 
 
@@ -1153,6 +1166,21 @@ void initTerrain() {
 	} // calculates normals
 }
 
+void configOVR() {
+//	DeviceManager* pManager = DeviceManager::Create();
+//	pManager = *DeviceManager.Create();
+	
+//	HMDDevice* pHMD;// = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
+//	HMDInfo hmdInfo;
+//	pHMD->GetDeviceInfo(&hmdInfo);
+//	cout << hmdInfo.DisplayDeviceName << endl;
+	// connect to device
+
+    sconfig.SetFullViewport(Viewport(0, 0, width, height));
+    sconfig.SetStereoMode(Stereo_LeftRight_Multipass);
+	// init stereo mode
+}
+
 int main(int argc, char* argv[]) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -1190,6 +1218,7 @@ int main(int argc, char* argv[]) {
 	readKeyBindings(); // loads key bindings
 
 	OVR::System::Init(); // init Oculus Rift
+	configOVR(); // connect to the Oculus Rift
 
 	glEnable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
@@ -1291,5 +1320,7 @@ int main(int argc, char* argv[]) {
 
 //	glutFullScreen();
 	glutMainLoop();
+	
+	OVR::System::Destroy();
 	return 0;
 }
