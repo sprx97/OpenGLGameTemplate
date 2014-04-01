@@ -119,7 +119,7 @@ GLuint skyboxindex;
 float skyboxwidth = 2000;
 // background textures
 
-GLuint passthroughShader, barrelShader; // GLSL shaders
+GLuint passthroughShader, barrelShader, simpleShader; // GLSL shaders
 
 #ifdef USE_FRAMEBUFFER
 GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
@@ -538,7 +538,7 @@ void displayMulti() {
 	glLoadIdentity();
 
 	if(RIFT) {
-		glViewport(0, 0, width/2, height);
+		/*glViewport(0, 0, width/2, height);
 		// look from left eye
 		display();
 		// left eye
@@ -547,14 +547,9 @@ void displayMulti() {
 		glViewport(width/2, 0, width/2, height);
 		// look from right eye
 		display();
-		// right eye
-	} // Rift mode displays from two eyes
-	else {
+		// right eye*/
 		glViewport(0, 0, width, height);
-		// basic projections
 		display();
-	} // regular mode
-
 #ifdef USE_FRAMEBUFFER
 //	screenshot("test.tga", width, height);
 
@@ -567,6 +562,37 @@ void displayMulti() {
 */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif 
+	} // Rift mode displays from two eyes
+	else {
+		glViewport(0, 0, width, height);
+		// basic projections
+		display();
+#ifdef USE_FRAMEBUFFER
+//	screenshot("test.tga", width, height);
+
+	glUseProgram(simpleShader); // should use barrel transform shader
+	
+/*	GLuint lenscenter = glGetUniformLocation(barrelShader, "LensCenter");
+	float x = 0.0, y = 0.0, w = 1.0, h = 1.0;
+	float lenscenterarray[2] = {x + (w + Distortion.XCenterOffset * 0.5f)*0.5f, y + h*0.5f};
+	glUniform2fv(lenscenter, 1, lenscenterarray);
+*/
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif 
+	} // regular mode
+
+/*#ifdef USE_FRAMEBUFFER
+//	screenshot("test.tga", width, height);
+
+	glUseProgram(barrelShader); // should use barrel transform shader
+	*/
+/*	GLuint lenscenter = glGetUniformLocation(barrelShader, "LensCenter");
+	float x = 0.0, y = 0.0, w = 1.0, h = 1.0;
+	float lenscenterarray[2] = {x + (w + Distortion.XCenterOffset * 0.5f)*0.5f, y + h*0.5f};
+	glUniform2fv(lenscenter, 1, lenscenterarray);
+*/
+/*	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif */
 
 	glViewport(0, 0, width, height);
 #ifdef USE_FRAMEBUFFER
@@ -1291,6 +1317,7 @@ int main(int argc, char* argv[]) {
 	
 	passthroughShader = setupShaders("BasicShader.v.glsl", "BasicShader.f.glsl");
 	barrelShader = setupShaders("BarrelShader.v.glsl", "BarrelShader.f.glsl");
+	simpleShader = setupShaders("SimpleShader.v.glsl", "SimpleShader.f.glsl");
 	// setup shaders
 
 	glutKeyboardFunc(key_press);
