@@ -93,7 +93,7 @@ CSE40166::Camera* arccam = NULL;
 CSE40166::Camera* firstpersoncam = NULL;
 #define ARCCAM 0
 #define FIRSTPERSONCAM 1
-int CAMERA = ARCCAM;
+int CAMERA = FIRSTPERSONCAM;
 /* Two Cameras
 	The Arcball Camera is the standard camera that focuses on one object
 	and can zoom and rotate around it. The first person camera looks in the
