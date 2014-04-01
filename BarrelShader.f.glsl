@@ -1,24 +1,7 @@
 #version 120
 
-//uniform vec2 LensCenter;
-//uniform vec2 ScreenCenter;
-//uniform vec2 Scale;
-//uniform vec2 ScaleIn;
-//uniform vec4 HmdWarpParam;
-
-//uniform sampler2D texture;
-
-//varying vec2 oTexCoord;
-
-//void main(void) {
-//	vec4 texcolor = texture2D(texture, oTexCoord);
-//	gl_FragColor = vec4(vec3(texcolor), 1.0);
-//} 
-
-// normal and lighting calculations are not done because 
-// they already were done before rendering to the texture
-
 uniform sampler2D warpTexture;
+uniform vec2 WindowSize;
 
 const vec2 LeftLensCenter = vec2(0.2863248, 0.5);
 const vec2 RightLensCenter = vec2(0.7136753, 0.5);
@@ -42,10 +25,10 @@ return LensCenter + Scale * rvector;
 void main()
 {
 // The following two variables need to be set per eye
-vec2 LensCenter = gl_FragCoord.x < 640 ? LeftLensCenter : RightLensCenter;
-vec2 ScreenCenter = gl_FragCoord.x < 640 ? LeftScreenCenter : RightScreenCenter;
+vec2 LensCenter = gl_FragCoord.x < (WindowSize.x / 2) ? LeftLensCenter : RightLensCenter;
+vec2 ScreenCenter = gl_FragCoord.x < (WindowSize.x / 2) ? LeftScreenCenter : RightScreenCenter;
 
-vec2 oTexCoord = gl_FragCoord.xy / vec2(1280, 800);
+vec2 oTexCoord = gl_FragCoord.xy / WindowSize;
 
 vec2 tc = HmdWarp(oTexCoord, LensCenter);
 if (any(bvec2(clamp(tc,ScreenCenter-vec2(0.25,0.5), ScreenCenter+vec2(0.25,0.5)) - tc)))

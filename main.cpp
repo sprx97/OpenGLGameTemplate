@@ -72,6 +72,7 @@ int lastframe = 0; // time last frame was rendered at
 float MAX_FPS = 60.0; // FPS cap
 float bodyYaw = 3.1*M_PI/2.0, bodyPitch = -.1*M_PI, bodyRoll = 0.0; // body orientation values. Controls camera when not using rift
 float headYaw = 3.1*M_PI/2.0, headPitch = -.1*M_PI, headRoll = 0.0; // head orientation values. Controls camera when using rift
+float LastSensorYaw =  3.1*M_PI/2.0;
 
 float movespeed = 0.1;
 float mousespeed = 0.002;
@@ -140,6 +141,7 @@ DeviceManager* pManager;
 HMDDevice* pHMD;
 HMDInfo hmdInfo;
 SensorDevice *pSensor;
+SensorFusion *SFusion;
 StereoConfig sconfig;
 // Oculus rift variables
 
@@ -347,6 +349,102 @@ void drawDebugInfo() {
 	glPopMatrix();
 }
 
+/* void drawDirectionVectors()
+	This function draws the directional vector of the body and head
+*/
+void drawDirectionVectors() {
+	glDisable(GL_LIGHTING);
+	glColor3f(0, 0, 1); // blue is body
+	glLineWidth(5);
+	glBegin(GL_LINES);
+		glVertex3f(bodyPos->getX(), bodyPos->getY(), bodyPos->getZ());
+		glVertex3f(bodyPos->getX() + 5*cos(bodyPitch)*sin(bodyYaw),
+				   bodyPos->getY() + 5*sin(bodyPitch),
+				   bodyPos->getZ() + 5*cos(bodyPitch)*cos(bodyYaw));
+	glEnd();
+	glColor3f(1, 0, 0); // red is head
+	glBegin(GL_LINES);
+		glVertex3f(headPos->getX(), headPos->getY(), headPos->getZ());
+		glVertex3f(headPos->getX() + 5*cos(headPitch)*sin(headYaw),
+				   headPos->getY() + 5*sin(headPitch),
+				   headPos->getZ() + 5*cos(headPitch)*cos(headYaw));
+	glEnd();
+	glLineWidth(1);
+	glEnable(GL_LIGHTING);
+}
+/* void drawCrosshairs()
+	This function draws crosshairs where the head and body are looking
+*/
+void drawCrosshairs() {
+	glDisable(GL_LIGHTING);
+	glColor3f(.6, 0.0, 0.0);
+	glLineWidth(3);
+	glPushMatrix();
+		glTranslatef(headPos->getX() + 100*cos(headPitch)*sin(headYaw),
+				     headPos->getY() + 100*sin(headPitch),
+				     headPos->getZ() + 100*cos(headPitch)*cos(headYaw));
+		
+		float modelview[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				if(i == j) modelview[i*4+j] = 1.0;
+				else modelview[i*4+j] = 0.0;
+			}
+		}
+		glLoadMatrixf(modelview);
+		// billboarding
+		
+		glBegin(GL_LINES);
+			glColor3f(1, 0, 0);
+			glVertex3f(3.0, 0, 0);
+			glVertex3f(1.0, 0, 0);
+			
+			glVertex3f(-1.0, 0, 0);
+			glVertex3f(-3.0, 0, 0);
+			
+			glVertex3f(0, 3.0, 0);
+			glVertex3f(0, 1.0, 0);
+			
+			glVertex3f(0, -1.0, 0);
+			glVertex3f(0, -3.0, 0);
+		glEnd();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslatef(bodyPos->getX() + 100*cos(bodyPitch)*sin(bodyYaw),
+				     bodyPos->getY() + 100*sin(bodyPitch),
+				     bodyPos->getZ() + 100*cos(bodyPitch)*cos(bodyYaw));
+		
+		float modelview2[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, modelview2);
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				if(i == j) modelview2[i*4+j] = 1.0;
+				else modelview2[i*4+j] = 0.0;
+			}
+		}
+		glLoadMatrixf(modelview2);
+		// billboarding
+		
+		glBegin(GL_LINES);
+			glColor3f(0, 0, 1);
+			glVertex3f(3.0, 0, 0);
+			glVertex3f(1.0, 0, 0);
+			
+			glVertex3f(-1.0, 0, 0);
+			glVertex3f(-3.0, 0, 0);
+			
+			glVertex3f(0, 3.0, 0);
+			glVertex3f(0, 1.0, 0);
+			
+			glVertex3f(0, -1.0, 0);
+			glVertex3f(0, -3.0, 0);
+		glEnd();
+	glPopMatrix();
+	glLineWidth(1);
+	glEnable(GL_LIGHTING);
+}
+
 /* void drawAxes()
 	Draws x, y, and z axes in red, green, and blue. For debugging.
 */
@@ -437,17 +535,21 @@ void drawCameras() {
 	arccam->setPhi(-2.0*M_PI/3.0);
 	arccam->followObject(dummyObject);
 	arccam->computeArcballPosition();
-	
-	float dx = cos(bodyPitch)*sin(bodyYaw);
-	float dy = sin(bodyPitch);
-	float dz = cos(bodyPitch)*cos(bodyYaw);
 
 	if(RIFT) {
+		float dx = cos(headPitch)*sin(headYaw);
+		float dy = sin(headPitch);
+		float dz = cos(headPitch)*cos(headYaw);
+
 		firstpersoncam->setEye(new CSE40166::Point(headPos->getX() + dx, headPos->getY() + dy, headPos->getZ() + dz));
 		firstpersoncam->setLookAt(new CSE40166::Point(headPos->getX() + 2*dx,
 											headPos->getY() + 2*dy,
 											headPos->getZ() + 2*dz));
 	}else {
+		float dx = cos(bodyPitch)*sin(bodyYaw);
+		float dy = sin(bodyPitch);
+		float dz = cos(bodyPitch)*cos(bodyYaw);
+
 		firstpersoncam->setEye(new CSE40166::Point(bodyPos->getX() + dx, bodyPos->getY() + dy, bodyPos->getZ() + dz));
 		firstpersoncam->setLookAt(new CSE40166::Point(bodyPos->getX() + 2*dx,
 											bodyPos->getY() + 2*dy,
@@ -552,8 +654,9 @@ void displayMulti() {
 		display();
 #ifdef USE_FRAMEBUFFER
 //	screenshot("test.tga", width, height);
-
+	int uniform_WindowSize = glGetUniformLocation(barrelShader, "WindowSize");
 	glUseProgram(barrelShader); // should use barrel transform shader
+	glUniform2f(uniform_WindowSize, width, height);
 	
 /*	GLuint lenscenter = glGetUniformLocation(barrelShader, "LensCenter");
 	float x = 0.0, y = 0.0, w = 1.0, h = 1.0;
@@ -628,7 +731,12 @@ void displayMulti() {
 #endif // renders framebuffer to screen
 
 	glUseProgram(0);
-	
+	glDisable(GL_DEPTH_TEST);
+	glPushMatrix();
+		drawDirectionVectors();
+		drawCrosshairs();
+	glPopMatrix();
+	glEnable(GL_DEPTH_TEST);
 //	drawGrid();
 //	drawAxes();
 	drawFPS(); // writes FPS to screen
@@ -688,6 +796,24 @@ void timer(int val) {
 
 	glutTimerFunc(1000.0/MAX_FPS, timer, 0);
 	glutPostRedisplay();
+    
+    if (pSensor) {
+    Quatf hmdOrient = SFusion->GetOrientation();
+
+    float yaw = 0.0f;
+    hmdOrient.GetEulerAngles<Axis_Y, Axis_X, Axis_Z>(&yaw, &headPitch, &headRoll);
+
+    headYaw += (yaw - LastSensorYaw);
+    LastSensorYaw = yaw;
+
+    cout << "headYaw: " << headYaw << " headPitch: " << headPitch << " headRoll: " << headRoll << endl;
+    // NOTE: We can get a matrix from orientation as follows:
+    // Matrix4f hmdMat(hmdOrient);
+
+    // Test logic - assign quaternion result directly to view:
+    // Quatf hmdOrient = SFusion.GetOrientation();
+    // View = Matrix4f(hmdOrient.Inverted()) * Matrix4f::Translation(-EyePos);
+	}
 }
 
 /* void initLighting()
@@ -1263,6 +1389,14 @@ int main(int argc, char* argv[]) {
 
 	OVR::System::Init(); // init Oculus Rift
 	configOVR(); // connect to the Oculus Rift
+
+
+	// We need to attach sensor to SensorFusion object for it to receive
+    // body frame messages and update orientation. SFusion.GetOrientation()
+    // is used in OnIdle() to orient the view.
+    if (pSensor) SFusion->AttachToSensor(pSensor);
+   // SFusion->SetDelegateMessageHandler(this);
+	//SFusion->SetPredictionEnabled(true); 
 
 	glEnable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
