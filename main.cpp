@@ -1268,9 +1268,9 @@ void initTerrain() {
 	generateNoise(32768, 32768);
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
-			int startzoom = 16;
+			float startzoom = 16;
 			int i = 0;
-			for(int zoom = startzoom; zoom >= 1; zoom /= 2) {
+			for(float zoom = startzoom; zoom >= 1; zoom /= 2) {
 				heightmap[x][z] += smoothNoise(x/zoom, z/zoom) * pow(persistance, i);
 				i++;
 			}
