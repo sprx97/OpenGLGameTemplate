@@ -126,7 +126,7 @@ GLuint passthroughShader, barrelShader, simpleShader; // GLSL shaders
 GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 #endif
 
-#define delta .1
+#define delta .1 // delta for drawing points
 #define mapwidth 50
 #define mapheight 50
 #define tilefactor 10.0
@@ -372,6 +372,7 @@ void drawDirectionVectors() {
 	glLineWidth(1);
 	glEnable(GL_LIGHTING);
 }
+
 /* void drawCrosshairs()
 	This function draws crosshairs where the head and body are looking
 */
@@ -1201,16 +1202,56 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
+#define frequency 10 // frequency of hight map (1 is a height for each delta)
+double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+/* float interpolate(float x, float z)
+	finds the y value of a point on the grid by interpolating its nearest neighbors
+*/
+float interpolate(int x, int z) {
+//	cout << "finding for (" << x << ", " << z << ")" <<endl;
+
+	float xfrac = (x%frequency) / (float)frequency;
+	float zfrac = (z%frequency) / (float)frequency;
+
+//	cout << "xfrac = " << xfrac << " zfrac = " << zfrac << endl;
+
+	int x1 = x - x%frequency;
+	int z1 = z - z%frequency;
+	// wrap around
+	
+	int x2 = x - x%frequency + frequency;
+	int z2 = z - z%frequency + frequency;
+	// neighbor values
+
+//	cout << "nearest x points are " << x1 << " and " << x2 << endl;
+//	cout << "nearest z points are " << z1 << " and " << z2 << endl << endl;
+
+	float yval = 0.0;
+	yval += xfrac * zfrac * randomNoise[x2][z2];
+	yval += xfrac * (1-zfrac) * randomNoise[x2][z1];
+	yval += (1-xfrac) * zfrac * randomNoise[x1][z2];
+	yval += (1-xfrac) * (1-zfrac) * randomNoise[x1][z1];
+
+	return yval;
+}
+
 /* void generateNoise()
 	fills the randomNoise array with random double values from 0 to 1
 */
-double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 void generateNoise(int s1, int s2) {
-	for(int x = 0; x < mapwidth/delta; x++) {
-		for(int z = 0; z < mapheight/delta; z++) {
+	for(int x = 0; x < mapwidth/delta; x += frequency) {
+		for(int z = 0; z < mapheight/delta; z += frequency) {
 			randomNoise[x][z] =  ((rand() % s1) / (float)s2);
 		}
 	} // generates a random array of heights
+
+	for(int x = 0; x < mapwidth/delta; x++) {
+		for(int z = 0; z < mapheight/delta; z++) {
+			if(x%frequency == 0 && z%frequency == 0) continue; // skips heights already used
+			randomNoise[x][z] = interpolate(x, z); // just a placeholder
+			// interpolate here!
+		}
+	} // fills in heights by interpolating
 }
 
 /* double smoothNoise(double x, double y)
@@ -1236,7 +1277,7 @@ double smoothNoise(double x, double z) {
 	value += (1-xfrac) * (1-zfrac) * randomNoise[x2][z2];
 
 	return value;
-}
+} // HOW IS THIS INTERPOLATION FUNCTION DIFFERENT FROM MY OTHER ONE??? CAN I COMBINE THEM?
 
 /* void initTerrain()
 	Randomizes the heights of the terrain and calculates its normals
@@ -1246,9 +1287,9 @@ void initTerrain() {
 		for(int z = 0; z < mapheight/delta; z++)
 			heightmap[x][z] = 0.0;
 
-	float persistance = 1/16.0;
+	float persistance = .125;
 	float octaves = 3;
-	float amplitude = 1;
+	float amplitude = 5;
 	// these should all be arguments to the initTerrain function
 
 	generateNoise(32768, 32768);
