@@ -1201,21 +1201,22 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
+/***************************************************/
+
 double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 /* void generateNoise()
 	fills the randomNoise array with random double values from 0 to 1
 */
-void generateNoise() {
+void generateNoise(int s1, int s2) {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
-			randomNoise[x][z] =  (rand() % 32768) / 32768.0;
+			randomNoise[x][z] =  ((rand() % s1) / (float)s2);
 		}
 	} // generates a random array of heights
 }
 
 /* double smoothNoise(double x, double y)
 	returns the noise function at a point by interpolating between noise indices
-
 */
 double smoothNoise(double x, double z) {
 	double xfrac = x-(int)x;
@@ -1243,27 +1244,69 @@ double smoothNoise(double x, double z) {
 	Randomizes the heights of the terrain and its normals
 */
 void initTerrain() {
-/*	generateNoise();
+	for(int x = 0; x < mapwidth/delta; x++)
+		for(int z = 0; z < mapheight/delta; z++)
+			heightmap[x][z] = 0.0;
+
+/*
+	for(int n = 0; n < 1; n++) {
+		double i = ((rand() % 32768) / 32768.0);
+		cout << i << endl;
+
+		for(int x = 0; x < mapwidth/delta; x++) {
+			for(int z = 0; z < mapheight/delta; z++) {
+				heightmap[x][z] += .1 * sin(z * i);
+				heightmap[x][z] += .1 * sin(x * i);
+			}
+		}
+	} // n is number of sine functions combined
+	// attempt at sin/cos
+*/
+
+	float persistance = .125; // low persistance for more rolling hills
+
+	generateNoise(32768, 32768);
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
-			heightmap[x][z] = 0.0;
-			int startzoom = 256;
+			int startzoom = 16;
+			int i = 0;
 			for(int zoom = startzoom; zoom >= 1; zoom /= 2) {
-				heightmap[x][z] += smoothNoise(x/zoom, z/zoom) * zoom;
+				heightmap[x][z] += smoothNoise(x/zoom, z/zoom) * pow(persistance, i);
+				i++;
 			}
-			heightmap[x][z] /= (1+log(startzoom)/log(2));
 		}
 	}
 	// add different zoom layers of smoothed maps
-*/
+
+	float max = heightmap[0][0];
+	float avg = 0.0;
 	for(int x = 0; x < mapwidth/delta; x++) {
+		for(int z = 0; z < mapheight/delta; z++) {
+			if(heightmap[x][z] > max) max = heightmap[x][z];
+			avg += heightmap[x][z];
+		}
+	}
+	avg /= ((mapwidth/delta)*(mapheight/delta));
+	// finds max/avg height
+	cout << avg << endl;
+	cout << max << endl;
+
+	for(int x = 0; x < mapwidth/delta; x++) {
+		for(int z = 0; z < mapheight/delta; z++) {
+			heightmap[x][z] -= max;
+			cout << (heightmap[x][z]) << endl;
+		}
+	}
+	// sets terrain somewhere visible
+
+/*	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 //			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
 //			heightmap[x][z] = 0.0;
 			heightmap[x][z] = sin(z/25.0); // combine multiple sine waves
 		}
 	} // heights
-	
+	*/
 	/* 
 		http://blog.habrador.com/2013/02/how-to-generate-random-terrain.html
 		
@@ -1322,6 +1365,8 @@ void initTerrain() {
 	} // calculates normals
 }
 
+/***************************************************/
+
 void configOVR() {
 	pManager = DeviceManager::Create();
 	pHMD = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
@@ -1352,6 +1397,8 @@ void configOVR() {
 }
 
 int main(int argc, char* argv[]) {
+//	srand(time(NULL));
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0, 0);
