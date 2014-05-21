@@ -1201,12 +1201,10 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
-/***************************************************/
-
-double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 /* void generateNoise()
 	fills the randomNoise array with random double values from 0 to 1
 */
+double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
 void generateNoise(int s1, int s2) {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
@@ -1248,7 +1246,7 @@ void initTerrain() {
 		for(int z = 0; z < mapheight/delta; z++)
 			heightmap[x][z] = 0.0;
 
-	float persistance = .125;
+	float persistance = 1/16.0;
 	float octaves = 3;
 	float amplitude = 1;
 	// these should all be arguments to the initTerrain function
@@ -1319,8 +1317,6 @@ void initTerrain() {
 		}
 	} // calculates normals
 }
-
-/***************************************************/
 
 void configOVR() {
 	pManager = DeviceManager::Create();
