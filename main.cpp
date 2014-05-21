@@ -1397,7 +1397,7 @@ void configOVR() {
 }
 
 int main(int argc, char* argv[]) {
-//	srand(time(NULL));
+	srand(time(NULL));
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
