@@ -1241,42 +1241,29 @@ double smoothNoise(double x, double z) {
 }
 
 /* void initTerrain()
-	Randomizes the heights of the terrain and its normals
+	Randomizes the heights of the terrain and calculates its normals
 */
 void initTerrain() {
 	for(int x = 0; x < mapwidth/delta; x++)
 		for(int z = 0; z < mapheight/delta; z++)
 			heightmap[x][z] = 0.0;
 
-/*
-	for(int n = 0; n < 1; n++) {
-		double i = ((rand() % 32768) / 32768.0);
-		cout << i << endl;
-
-		for(int x = 0; x < mapwidth/delta; x++) {
-			for(int z = 0; z < mapheight/delta; z++) {
-				heightmap[x][z] += .1 * sin(z * i);
-				heightmap[x][z] += .1 * sin(x * i);
-			}
-		}
-	} // n is number of sine functions combined
-	// attempt at sin/cos
-*/
-
-	float persistance = .125; // low persistance for more rolling hills
+	float persistance = .125;
+	float octaves = 3;
+	float amplitude = 1;
+	// these should all be arguments to the initTerrain function
 
 	generateNoise(32768, 32768);
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
-			float startzoom = 16;
+			float startfreq = pow(2, octaves);
 			int i = 0;
-			for(float zoom = startzoom; zoom >= 1; zoom /= 2) {
-				heightmap[x][z] += smoothNoise(x/zoom, z/zoom) * pow(persistance, i);
+			for(float freq = startfreq; freq >= 1; freq /= 2) {
+				heightmap[x][z] += smoothNoise(x/freq, z/freq) * amplitude * pow(persistance, i);
 				i++;
 			}
 		}
-	}
-	// add different zoom layers of smoothed maps
+	} // add different zoom layers of smoothed maps
 
 	float max = heightmap[0][0];
 	float avg = 0.0;
@@ -1288,44 +1275,12 @@ void initTerrain() {
 	}
 	avg /= ((mapwidth/delta)*(mapheight/delta));
 	// finds max/avg height
-	cout << avg << endl;
-	cout << max << endl;
 
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 			heightmap[x][z] -= max;
-			cout << (heightmap[x][z]) << endl;
 		}
-	}
-	// sets terrain somewhere visible
-
-/*	for(int x = 0; x < mapwidth/delta; x++) {
-		for(int z = 0; z < mapheight/delta; z++) {
-//			heightmap[x][z] = ((float)rand()/(float)RAND_MAX) * .5 - .25; // random height between -.25 and .25
-//			heightmap[x][z] = 0.0;
-			heightmap[x][z] = sin(z/25.0); // combine multiple sine waves
-		}
-	} // heights
-	*/
-	/* 
-		http://blog.habrador.com/2013/02/how-to-generate-random-terrain.html
-		
-		heightmaps can be generated in many ways... One simple option for a single-terrain map
-		is a hill algorithm (http://www.stuffwithstuff.com/robot-frog/3d/hills/hill.html). This 
-		algorithm creates randomly-sized bumps at random points. That would be nice to add some
-		variation to a flat stage.
-		
-		Another option is the Value Noise algorithm (http://lodev.org/cgtutor/randomnoise.html).
-		This algorithm generates a random noise array and smoothing it, then overlaying different
-		sizes of the smoothed array. This can be applied to different initial images to generate
-		things like clouds, marble, or wood. Can also be done in 3D (clouds?)
-		
-		Perlin Noise is similar to Value Noise but I haven't read up on it yet so I'n not sure where
-		it differs. http://www.float4x4.net/index.php/2010/06/generating-realistic-and-playable-terrain-height-maps/
-		
-		Apparently the collision on uneven terrain can be done with surface/vertex normals, too. Good
-		thing I spent so much time calculating those.
-	*/
+	} // sets terrain somewhere visible
 	
 	// actually this probably should be an obj. Can I create an object without importing it? Probalby!
 
