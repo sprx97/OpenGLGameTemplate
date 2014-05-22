@@ -101,7 +101,7 @@ int CAMERA = FIRSTPERSONCAM;
 	direction the user is facing from the user's position.
 */
 
-CSE40166::PointLight* pointLight;
+CSE40166::SpotLight* light;
 // a single light
 
 CSE40166::Material* defaultwhite;
@@ -524,7 +524,7 @@ void drawFPS() {
 */
 void drawLighting() {
 	glEnable(GL_LIGHTING);
-	if(pointLight->isLightOn()) pointLight->shine();
+	if(light->isLightOn()) light->shine();
 }
 
 /* void drawCameras()
@@ -827,16 +827,19 @@ void initLighting() {
 
 	glEnable(GL_LIGHTING);
 
-	pointLight = new CSE40166::PointLight(0);
+	light = new CSE40166::SpotLight(0);
 
 	GLfloat color[4] = {.7, .7, .7, 1.0};
-	pointLight->setDiffuse(color);
-	pointLight->setSpecular(color);
-	pointLight->setAmbient(color);
+	light->setDiffuse(color);
+	light->setSpecular(color);
+	light->setAmbient(color);
 	// color
 	
-	pointLight->setPosition(new CSE40166::Point(0.0, 10.0, 0.0));
-	pointLight->turnLightOn();
+	light->setPosition(new CSE40166::Point(0.0, 10.0, 0.0));
+	light->setDirection(new CSE40166::Vector(0.0, -1.0, 0.0));
+	light->setCutoff(180);
+
+	light->turnLightOn();
 	// position
 }
 
@@ -1202,8 +1205,17 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
-#define frequency 10 // frequency of hight map (1 is a height for each delta)
+#define frequency 10 // frequency of height map (1 is a height for each delta)
 double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+/* Helper function for bicubic interpolation*/
+float cubicPolate(float v0, float v1, float v2, float v3, float frac) {
+	float A = (v3-v2)-(v0-v1);
+	float B = (v0-v1)-A;
+	float C = v2-v0;
+	float D = v1;
+
+	return A*pow(frac,3)+B*pow(frac,2)+C*frac+D;	
+}
 /* float interpolate(float x, float z)
 	finds the y value of a point on the grid by interpolating its nearest neighbors
 */
@@ -1215,22 +1227,52 @@ float interpolate(int x, int z) {
 
 //	cout << "xfrac = " << xfrac << " zfrac = " << zfrac << endl;
 
-	int x1 = x - x%frequency;
-	int z1 = z - z%frequency;
-	// wrap around
+	int xL = x - x%frequency;
+	int zL = z - z%frequency;
+	// closest smaller point
 	
-	int x2 = x - x%frequency + frequency;
-	int z2 = z - z%frequency + frequency;
-	// neighbor values
+	int xR = x - x%frequency + frequency;
+	int zR = z - z%frequency + frequency;
+	// closest larger point
 
-//	cout << "nearest x points are " << x1 << " and " << x2 << endl;
-//	cout << "nearest z points are " << z1 << " and " << z2 << endl << endl;
+//	cout << "nearest x points are " << xL << " and " << xR << endl;
+//	cout << "nearest z points are " << zL << " and " << zR << endl << endl;
 
-	float yval = 0.0;
-	yval += xfrac * zfrac * randomNoise[x2][z2];
-	yval += xfrac * (1-zfrac) * randomNoise[x2][z1];
-	yval += (1-xfrac) * zfrac * randomNoise[x1][z2];
-	yval += (1-xfrac) * (1-zfrac) * randomNoise[x1][z1];
+/*******************/
+	// This is bilinear interpolation
+
+/*	float yval = 0.0;
+	yval += xfrac * zfrac * randomNoise[xR][zR];
+	yval += xfrac * (1-zfrac) * randomNoise[xR][zL];
+	yval += (1-xfrac) * zfrac * randomNoise[xL][zR];
+	yval += (1-xfrac) * (1-zfrac) * randomNoise[xL][zL];
+*/
+/*****************/
+	// This is bicubic interpolation
+
+	float ndata[4][4];
+	for(int i = 0; i < 4; i++) {
+		for(int j = 0; j < 4; j++) {
+			int xval = xL + frequency*(i-1);
+			int zval = zL + frequency*(j-1);
+			while(xval < 0) xval++;
+			while(zval < 0) zval++;
+//			while(xval > mapwidth/delta) xval--;
+//			while(zval > mapheight/delta) zval--;
+			ndata[i][j] = randomNoise[xval][zval];
+		}
+	} // gets the 4x4 grid of points surrounding
+
+	float x1 = cubicPolate(ndata[0][0], ndata[1][0], ndata[2][0], ndata[3][0], xfrac);
+	float x2 = cubicPolate(ndata[0][1], ndata[1][1], ndata[2][1], ndata[3][1], xfrac);
+	float x3 = cubicPolate(ndata[0][2], ndata[1][2], ndata[2][2], ndata[3][2], xfrac);
+	float x4 = cubicPolate(ndata[0][3], ndata[1][3], ndata[2][3], ndata[3][3], xfrac);
+
+	float yval = cubicPolate(x1, x2, x3, x4, zfrac);
+
+//	cout << yval << endl;
+
+/****************/
 
 	return yval;
 }
@@ -1248,8 +1290,7 @@ void generateNoise(int s1, int s2) {
 	for(int x = 0; x < mapwidth/delta; x++) {
 		for(int z = 0; z < mapheight/delta; z++) {
 			if(x%frequency == 0 && z%frequency == 0) continue; // skips heights already used
-			randomNoise[x][z] = interpolate(x, z); // just a placeholder
-			// interpolate here!
+			randomNoise[x][z] = interpolate(x, z);
 		}
 	} // fills in heights by interpolating
 }
@@ -1279,7 +1320,7 @@ double smoothNoise(double x, double z) {
 	return value;
 } // HOW IS THIS INTERPOLATION FUNCTION DIFFERENT FROM MY OTHER ONE??? CAN I COMBINE THEM?
 
-/* void initTerrain()
+/* void ()
 	Randomizes the heights of the terrain and calculates its normals
 */
 void initTerrain() {
@@ -1289,8 +1330,8 @@ void initTerrain() {
 
 	float persistance = .125;
 	float octaves = 3;
-	float amplitude = 5;
-	// these should all be arguments to the initTerrain function
+	float amplitude = 3;
+	// these should all be arguments to the initTerrain function (and frequency too)
 
 	generateNoise(32768, 32768);
 	for(int x = 0; x < mapwidth/delta; x++) {
