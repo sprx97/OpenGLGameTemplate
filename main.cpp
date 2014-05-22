@@ -1261,10 +1261,10 @@ float interpolate(int x, int z) {
 			while(xval > mapwidth/delta + frequency) xval--;
 			while(zval > mapheight/delta + frequency) zval--;
 */
-			while(xval < 0) xval += frequency;
-			while(zval < 0) zval += frequency;
-			while(xval > mapwidth/delta) xval -= frequency;
-			while(zval > mapheight/delta) zval -= frequency;
+			while(xval < 0) xval += 1;
+			while(zval < 0) zval += 1;
+			while(xval > 500) xval -= 1;
+			while(zval > 500) zval -= 1;
 			ndata[i][j] = randomNoise[xval][zval];
 		}
 	} // gets the 4x4 grid of points surrounding
