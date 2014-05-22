@@ -130,8 +130,8 @@ GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 #define mapwidth 50
 #define mapheight 50
 #define tilefactor 10.0
-double heightmap[(int)(mapwidth/delta)][(int)(mapheight/delta)];
-CSE40166::Vector normals[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+double heightmap[(int)(mapwidth/delta) + 1][(int)(mapheight/delta) + 1];
+CSE40166::Vector normals[(int)(mapwidth/delta) + 1][(int)(mapheight/delta) + 1];
 // height of each point on the grid
 
 GLuint sandtexture; // texture for terrain
@@ -523,8 +523,9 @@ void drawFPS() {
 	Shines the lights from their location.
 */
 void drawLighting() {
-	glEnable(GL_LIGHTING);
 	light->setPosition(new CSE40166::Point(bodyPos->getX(), 10.0, bodyPos->getZ()));
+
+	glEnable(GL_LIGHTING);
 	if(light->isLightOn()) light->shine();
 }
 
@@ -1208,7 +1209,7 @@ void initSounds() {
 }
 
 #define frequency 10 // frequency of height map (1 is a height for each delta)
-double randomNoise[(int)(mapwidth/delta)][(int)(mapheight/delta)];
+double randomNoise[(int)(mapwidth/delta) + 1][(int)(mapheight/delta) + 1];
 /* Helper function for bicubic interpolation*/
 float cubicPolate(float v0, float v1, float v2, float v3, float frac) {
 	float A = (v3-v2)-(v0-v1);
@@ -1288,14 +1289,14 @@ float interpolate(int x, int z) {
 	fills the randomNoise array with random double values from 0 to 1
 */
 void generateNoise(int s1, int s2) {
-	for(int x = 0; x < mapwidth/delta; x += frequency) {
-		for(int z = 0; z < mapheight/delta; z += frequency) {
+	for(int x = 0; x <= mapwidth/delta; x += frequency) {
+		for(int z = 0; z <= mapheight/delta; z += frequency) {
 			randomNoise[x][z] =  ((rand() % s1) / (float)s2);
 		}
 	} // generates a random array of heights
 
-	for(int x = 0; x < mapwidth/delta; x++) {
-		for(int z = 0; z < mapheight/delta; z++) {
+	for(int x = 0; x <= mapwidth/delta; x++) {
+		for(int z = 0; z <= mapheight/delta; z++) {
 			if(x%frequency == 0 && z%frequency == 0) continue; // skips heights already used
 			randomNoise[x][z] = interpolate(x, z);
 		}
@@ -1331,8 +1332,8 @@ double smoothNoise(double x, double z) {
 	Randomizes the heights of the terrain and calculates its normals
 */
 void initTerrain() {
-	for(int x = 0; x < mapwidth/delta; x++)
-		for(int z = 0; z < mapheight/delta; z++)
+	for(int x = 0; x <= mapwidth/delta; x++)
+		for(int z = 0; z <= mapheight/delta; z++)
 			heightmap[x][z] = 0.0;
 
 	float persistance = .125;
@@ -1341,8 +1342,8 @@ void initTerrain() {
 	// these should all be arguments to the initTerrain function (and frequency too)
 
 	generateNoise(32768, 32768);
-	for(int x = 0; x < mapwidth/delta; x++) {
-		for(int z = 0; z < mapheight/delta; z++) {
+	for(int x = 0; x <= mapwidth/delta; x++) {
+		for(int z = 0; z <= mapheight/delta; z++) {
 			float startfreq = pow(2, octaves);
 			int i = 0;
 			for(float freq = startfreq; freq >= 1; freq /= 2) {
@@ -1354,8 +1355,8 @@ void initTerrain() {
 
 	float max = heightmap[0][0];
 	float avg = 0.0;
-	for(int x = 0; x < mapwidth/delta; x++) {
-		for(int z = 0; z < mapheight/delta; z++) {
+	for(int x = 0; x <= mapwidth/delta; x++) {
+		for(int z = 0; z <= mapheight/delta; z++) {
 			if(heightmap[x][z] > max) max = heightmap[x][z];
 			avg += heightmap[x][z];
 		}
@@ -1363,16 +1364,16 @@ void initTerrain() {
 	avg /= ((mapwidth/delta)*(mapheight/delta));
 	// finds max/avg height
 
-	for(int x = 0; x < mapwidth/delta; x++) {
-		for(int z = 0; z < mapheight/delta; z++) {
+	for(int x = 0; x <= mapwidth/delta; x++) {
+		for(int z = 0; z <= mapheight/delta; z++) {
 			heightmap[x][z] -= max;
 		}
 	} // sets terrain somewhere visible
 	
 	// actually this probably should be an obj. Can I create an object without importing it? Probalby!
 
-	for(double z = 0.0; z < mapheight; z += delta) {
-		for(double x = 0.0; x < mapwidth; x += delta) {
+	for(double z = 0.0; z <= mapheight; z += delta) {
+		for(double x = 0.0; x <= mapwidth; x += delta) {
 			CSE40166::Point* myPoint = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
 			CSE40166::Point* adjPoints[6] = { NULL }; // max 6 adjacent points
 			if(x > 0.0 && z > 0.0) // up and left
