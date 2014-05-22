@@ -1441,14 +1441,14 @@ int main(int argc, char* argv[]) {
 	glutSetCursor(GLUT_CURSOR_NONE); 
 	if(fullscreen) glutFullScreen();
 	
-#ifdef __APPLE__
+/*#ifdef __APPLE__
 	CGPoint warpPoint= CGPointMake(width/2, height/2);
 	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
 	CGAssociateMouseAndMouseCursorPosition(true);
 #endif
 #ifdef __linux__
 	glutWarpPointer(width/2, height/2);
-#endif
+#endif*/
 	// create window and center mouse
 	
 	CSE40166::CSE40166Init(true, true); // using GLUT and ALUT
@@ -1578,6 +1578,14 @@ int main(int argc, char* argv[]) {
 #endif
 
 //	glutFullScreen();
+#ifdef __APPLE__
+	CGPoint warpPoint= CGPointMake(width/2, height/2);
+	CGWarpMouseCursorPosition(CGPointMake(width/2, height/2));
+	CGAssociateMouseAndMouseCursorPosition(true);
+#endif
+#ifdef __linux__
+	glutWarpPointer(width/2, height/2);
+#endif
 	glutMainLoop();
 	
 	return 0;
