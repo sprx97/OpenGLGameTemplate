@@ -524,6 +524,7 @@ void drawFPS() {
 */
 void drawLighting() {
 	glEnable(GL_LIGHTING);
+	light->setPosition(new CSE40166::Point(bodyPos->getX(), 10.0, bodyPos->getZ()));
 	if(light->isLightOn()) light->shine();
 }
 
@@ -1221,7 +1222,7 @@ float cubicPolate(float v0, float v1, float v2, float v3, float frac) {
 	finds the y value of a point on the grid by interpolating its nearest neighbors
 */
 float interpolate(int x, int z) {
-//	cout << "finding for (" << x << ", " << z << ")" <<endl;
+//	cout << "finding for (" << x << ", " << z << ")" << endl;
 
 	float xfrac = (x%frequency) / (float)frequency;
 	float zfrac = (z%frequency) / (float)frequency;
@@ -1237,7 +1238,7 @@ float interpolate(int x, int z) {
 	// closest larger point
 
 //	cout << "nearest x points are " << xL << " and " << xR << endl;
-//	cout << "nearest z points are " << zL << " and " << zR << endl << endl;
+//	cout << "nearest z points are " << zL << " and " << zR << endl;
 
 /*******************/
 	// This is bilinear interpolation
@@ -1276,7 +1277,7 @@ float interpolate(int x, int z) {
 
 	float yval = cubicPolate(x1, x2, x3, x4, zfrac);
 
-//	cout << yval << endl;
+//	cout << yval << endl << endl;
 
 /****************/
 
