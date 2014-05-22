@@ -1515,7 +1515,7 @@ int main(int argc, char* argv[]) {
 	firstpersoncam->look();
 	// create cameras
 	
-	sandtexture = loadTexture("sand.jpg");
+	sandtexture = loadTexture("grass.jpg");
 	initTerrain();
 	groundList = glGenLists(1);
 	glNewList(groundList, GL_COMPILE);
