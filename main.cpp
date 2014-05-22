@@ -838,6 +838,7 @@ void initLighting() {
 	light->setPosition(new CSE40166::Point(0.0, 10.0, 0.0));
 	light->setDirection(new CSE40166::Vector(0.0, -1.0, 0.0));
 	light->setCutoff(180);
+	light->setExponent(10);
 
 	light->turnLightOn();
 	// position
@@ -1255,10 +1256,10 @@ float interpolate(int x, int z) {
 		for(int j = 0; j < 4; j++) {
 			int xval = xL + frequency*(i-1);
 			int zval = zL + frequency*(j-1);
-			while(xval < 0) xval++;
-			while(zval < 0) zval++;
-//			while(xval > mapwidth/delta) xval--;
-//			while(zval > mapheight/delta) zval--;
+			while(xval <= -frequency) xval++;
+			while(zval <= -frequency) zval++;
+			while(xval > mapwidth/delta + frequency) xval--;
+			while(zval > mapheight/delta + frequency) zval--;
 			ndata[i][j] = randomNoise[xval][zval];
 		}
 	} // gets the 4x4 grid of points surrounding
