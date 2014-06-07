@@ -126,10 +126,10 @@ GLuint passthroughShader, barrelShader, simpleShader; // GLSL shaders
 GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 #endif
 
-#define delta .1 // delta for drawing points
+#define delta .25 // delta for drawing points
 #define mapwidth 50
 #define mapheight 50
-#define tilefactor 10.0
+#define tilefactor 20.0 // higher number = finer tiling
 double heightmap[(int)(mapwidth/delta) + 1][(int)(mapheight/delta) + 1];
 CSE40166::Vector normals[(int)(mapwidth/delta) + 1][(int)(mapheight/delta) + 1];
 // height of each point on the grid
@@ -1214,7 +1214,7 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
-#define frequency 10 // frequency of height map (1 is a height for each delta)
+#define frequency 5 // frequency of height map (1 is a height for each delta)
 double randomNoise[(int)(mapwidth/delta) + 1][(int)(mapheight/delta) + 1];
 /* Helper function for bicubic interpolation*/
 float cubicPolate(float v0, float v1, float v2, float v3, float frac) {
@@ -1490,7 +1490,14 @@ int main(int argc, char* argv[]) {
 	//SFusion->SetPredictionEnabled(true); 
 
 	glEnable(GL_DEPTH_TEST);
+
+//	glEnable(GL_SMOOTH);
+//	glHint(GL_POLYGON_SMOOTH, GL_NICEST);
+//	glEnable(GL_POLYGON_SMOOTH);
 	glShadeModel(GL_SMOOTH);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glEnable(GL_MULTISAMPLE_ARB);	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
