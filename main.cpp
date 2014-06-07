@@ -290,6 +290,12 @@ void drawGrid() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, defaultwhite->getAmbient());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, defaultwhite->getDiffuse());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, defaultwhite->getSpecular());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, defaultwhite->getEmissive());
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, defaultwhite->getShininess());
+
 	glEnable(GL_TEXTURE_2D);
 	for(double z = 0.0; z < mapheight-delta; z += delta) {
 		glBegin(GL_TRIANGLE_STRIP);
@@ -1327,9 +1333,11 @@ double smoothNoise(double x, double z) {
 	Randomizes the heights of the terrain and calculates its normals
 */
 void initTerrain() {
-	for(int x = 0; x <= mapwidth/delta; x++)
-		for(int z = 0; z <= mapheight/delta; z++)
+	for(int x = 0; x <= mapwidth/delta; x++) {
+		for(int z = 0; z <= mapheight/delta; z++) {
 			heightmap[x][z] = 0.0;
+		}
+	}
 
 	float persistance = .125;
 	float octaves = 3;
@@ -1361,7 +1369,7 @@ void initTerrain() {
 
 	for(int x = 0; x <= mapwidth/delta; x++) {
 		for(int z = 0; z <= mapheight/delta; z++) {
-			heightmap[x][z] -= max;
+			heightmap[x][z] -= avg;
 		}
 	} // sets terrain somewhere visible
 	
@@ -1518,6 +1526,12 @@ int main(int argc, char* argv[]) {
 	firstpersoncam->look();
 	// create cameras
 	
+	// initSkybox(NAME)
+	initLighting();
+	initMaterials();
+	initSounds();
+	// other parts of scene
+
 	sandtexture = loadTexture("grass.jpg");
 	initTerrain();
 	groundList = glGenLists(1);
@@ -1525,12 +1539,6 @@ int main(int argc, char* argv[]) {
 		drawGrid();
 	glEndList();
 	// initializes a (hopefully) randomly generated terrain
-	
-	// initSkybox(NAME)
-	initLighting();
-	initMaterials();
-	initSounds();
-	// other parts of scene
 	
 	passthroughShader = setupShaders("BasicShader.v.glsl", "BasicShader.f.glsl");
 	barrelShader = setupShaders("BarrelShader.v.glsl", "BarrelShader.f.glsl");
