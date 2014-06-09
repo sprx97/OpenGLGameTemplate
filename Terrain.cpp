@@ -4,12 +4,15 @@
 	#include <GL/glut.h>
 #endif
 
-#include <CSE40166/CSE40166.h>
 #include "Terrain.h"
 #include <algorithm>
 #include <math.h>
 
 using namespace std;
+
+_Vector cross(_Vector a, _Vector b) {
+	return _Vector(a.y*b.z-a.z*b.y, b.x*a.z-a.x*b.z, a.x*b.y-a.y*b.x);
+}
 
 /* Helper function for bicubic interpolation*/
 float Terrain::cubicPolate(float v0, float v1, float v2, float v3, float frac) {
@@ -102,23 +105,23 @@ float Terrain::smoothNoise(double x, double z) {
 void Terrain::calculateNormals() {
 	for(double z = 0.0; z <= mapheight; z += delta) {
 		for(double x = 0.0; x <= mapwidth; x += delta) {
-			CSE40166::Point* myPoint = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
-			CSE40166::Point* adjPoints[6] = { NULL }; // max 6 adjacent points
+			_Point* myPoint = new _Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+			_Point* adjPoints[6] = {NULL};
 			if(x > 0.0 && z > 0.0) // up and left
-				adjPoints[0] = new CSE40166::Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)-1], z-delta-mapheight/2.0);
+				adjPoints[0] = new _Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)-1], z-delta-mapheight/2.0);
 			if(z > 0.0) // up
-				adjPoints[1] = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)-1], z-delta-mapheight/2.0);
+				adjPoints[1] = new _Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)-1], z-delta-mapheight/2.0);
 			if(x < mapwidth-delta) // right
-				adjPoints[2] = new CSE40166::Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
+				adjPoints[2] = new _Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			if(x < mapwidth-delta && z < mapheight-delta) // down right
-				adjPoints[3] = new CSE40166::Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapheight/2.0);
+				adjPoints[3] = new _Point(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapheight/2.0);
 			if(z < mapheight-delta) // down
-				adjPoints[4] = new CSE40166::Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
+				adjPoints[4] = new _Point(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 			if(x > 0.0) // left
-				adjPoints[5] = new CSE40166::Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)], z-mapheight/2.0);
+				adjPoints[5] = new _Point(x-delta-mapwidth/2.0, heightmap[(int)(x/delta)-1][(int)(z/delta)], z-mapheight/2.0);
 			// all adjacent points
 
-			normals[(int)(x/delta)][(int)(z/delta)] = CSE40166::Vector(0, 0, 0);
+			normals[(int)(x/delta)][(int)(z/delta)];
 			if(adjPoints[0] != NULL && adjPoints[1] != NULL)
 				normals[(int)(x/delta)][(int)(z/delta)] += cross(*(adjPoints[1])-*myPoint, *(adjPoints[0])-*myPoint);
 			if(adjPoints[1] != NULL && adjPoints[2] != NULL)
@@ -188,44 +191,45 @@ Terrain::Terrain(GLuint tex, float f, float p, float o, float a) {
 	Renders this terrain to the screen
 */
 void Terrain::draw() {
-	CSE40166::Material* defaultwhite = new CSE40166::Material(CSE40166::CSE40166_MATERIAL_WHITE);
-
 	glColor4f(1, 1, 1, 1); // white
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, defaultwhite->getAmbient());
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, defaultwhite->getDiffuse());
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, defaultwhite->getSpecular());
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, defaultwhite->getEmissive());
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, defaultwhite->getShininess());
+	float white[4] = {1.0, 1.0, 1.0, 1.0};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, white);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, white);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white);
+	float emiss[4] = {0.0, 0.0, 0.0, 1.0};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emiss);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+	// Plain white
 
 	glEnable(GL_TEXTURE_2D);
 	for(double z = 0.0; z < mapheight-delta; z += delta) {
 		glBegin(GL_TRIANGLE_STRIP);
 			for(double x = 0.0; x < mapwidth-delta; x += delta*2) {
-				glNormal3f(normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].getX(),
-						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].getY(),
-						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].getZ());
+				glNormal3f(normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].x,
+						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].y,
+						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].z);
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 
-				glNormal3f(normals[(int)(x/mapwidth)][(int)(z/mapheight)].getX(),
-						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].getY(),
-						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].getZ());
+				glNormal3f(normals[(int)(x/mapwidth)][(int)(z/mapheight)].x,
+						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].y,
+						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].z);
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
 
-				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].getX(),
-						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].getY(),
-						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].getZ());
+				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].x,
+						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].y,
+						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].z);
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapwidth/2.0);
 				
-				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].getX(),
-						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].getY(),
-						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].getZ());
+				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].x,
+						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].y,
+						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].z);
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			}
