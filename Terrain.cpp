@@ -61,6 +61,9 @@ float Terrain::interpolate(int x, int z) {
 	fills the randomNoise array with random double values from 0 to 1
 */
 void Terrain::generateNoise(int s1, int s2) {
+#ifdef SEED_DEBUG
+	srand(SEED_DEBUG);
+#endif
 	for(int x = 0; x <= mapwidth/delta; x += frequency) {
 		for(int z = 0; z <= mapheight/delta; z += frequency) {
 			randomNoise[x][z] = ((rand() % s1) / (float)s2);
