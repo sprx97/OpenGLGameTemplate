@@ -139,7 +139,7 @@ void Terrain::calculateNormals() {
 /* Constructor: Terrain
 	Creates a new terrain from the given parameters
 */
-Terrain::Terrain(float f, float p, float o, float a, GLuint tex) {
+Terrain::Terrain(GLuint tex, float f, float p, float o, float a) {
 	frequency = f;
 	persistance = p;
 	octaves = o;

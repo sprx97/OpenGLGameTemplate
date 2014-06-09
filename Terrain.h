@@ -8,7 +8,7 @@ using namespace std;
 
 class Terrain { // Extend object
 	public:
-		Terrain(float f, float p, float o, float a, GLuint tex);
+		Terrain(GLuint tex, float f = 5, float p = .125, float o = 3, float a = 3);
 		float cubicPolate(float v0, float v1, float v2, float v3, float frac);
 		float interpolate(int x, int z);
 		void generateNoise(int s1, int s2);

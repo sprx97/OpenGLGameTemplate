@@ -1290,7 +1290,7 @@ int main(int argc, char* argv[]) {
 	// other parts of scene
 
 	texture = loadTexture("sand.jpg");
-	Terrain* t = new Terrain(5, .125, 3, 3, texture);
+	Terrain* t = new Terrain(texture);
 	groundList = glGenLists(1);
 	glNewList(groundList, GL_COMPILE);
 		t->draw();
