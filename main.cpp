@@ -783,7 +783,7 @@ void initLighting() {
 
 	light = new CSE40166::SpotLight(0);
 
-	GLfloat color[4] = {.7, .7, .7, 1.0};
+	GLfloat color[4] = {.8, .8, .8, 1.0};
 	light->setDiffuse(color);
 	light->setSpecular(color);
 	light->setAmbient(color);
@@ -1289,6 +1289,7 @@ int main(int argc, char* argv[]) {
 	initSounds();
 	// other parts of scene
 
+//	texture = loadTexture("/Users/Jeremy/Pictures/2048.jpg");
 	texture = loadTexture("sand.jpg");
 	Terrain* t = new Terrain(texture);
 	groundList = glGenLists(1);

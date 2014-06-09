@@ -88,29 +88,37 @@ LIBS += -lovr
 
 all: $(TARGET)
 
-clean:
-	rm -f *.o $(TARGET)
-
-depend:
-	rm -f Makefile.bak
-	mv Makefile Makefile.bak
-	sed '/^# DEPENDENCIES/,$$d' Makefile.bak > Makefile
-	echo '# DEPENDENCIES' >> Makefile
-	$(CXX) -MM *.cpp >> Makefile
-
-.c.o:
-	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
-
-
-.cc.o: 
-	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $^
-
-.cpp.o:
-	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $^
-
 $(TARGET): main.o Terrain.o
 	$(CXX) $(CFLAGS) $(INCPATH) -o $@ $^ $(LIBPATH) $(LIBS)
 
+main.o: main.cpp globals.h
+	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+Terrain.o: Terrain.cpp globals.h
+	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+clean:
+	rm -f *.o $(TARGET)
+
+#depend:
+#	rm -f Makefile.bak
+#	mv Makefile Makefile.bak
+#	sed '/^# DEPENDENCIES/,$$d' Makefile.bak > Makefile
+#	echo '# DEPENDENCIES' >> Makefile
+#	$(CXX) -MM *.cpp >> Makefile
+
+#.c.o:
+#	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+#.cc.o: 
+#	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $^
+
+#.cpp.o:
+#	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $^
+
+#$(TARGET): main.o Terrain.o
+#	$(CXX) $(CFLAGS) $(INCPATH) -o $@ $^ $(LIBPATH) $(LIBS)
+
 # DEPENDENCIES
-main.o: main.cpp
-Terrain.o: Terrain.cpp
+#main.o: main.cpp
+#Terrain.o: Terrain.cpp
