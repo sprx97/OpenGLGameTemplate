@@ -108,8 +108,9 @@ depend:
 .cpp.o:
 	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $^
 
-$(TARGET): main.o
+$(TARGET): main.o Terrain.o
 	$(CXX) $(CFLAGS) $(INCPATH) -o $@ $^ $(LIBPATH) $(LIBS)
 
 # DEPENDENCIES
 main.o: main.cpp
+Terrain.o: Terrain.cpp
