@@ -123,6 +123,7 @@ float skyboxwidth = 2000;
 GLuint skydome;
 GLuint skydomeindex;
 float skydomeradius = 100;
+float skydomerot = 0.0;
 // background textures
 
 GLuint passthroughShader, barrelShader, simpleShader; // GLSL shaders
@@ -536,8 +537,13 @@ void display() {
 
 	glPushMatrix();
 		glCallList(groundList);
-		glCallList(skydomeindex);
-		glCallList(skyboxindex);
+		glPushMatrix();
+			skydomerot += .01;
+			if(skydomerot >= 360) skydomerot = 0;
+			glRotatef(-skydomerot, 0, 1, 0);
+			glCallList(skydomeindex);
+		glPopMatrix();
+//		glCallList(skyboxindex);
 	glPopMatrix();
 
 	// bind and display textures
