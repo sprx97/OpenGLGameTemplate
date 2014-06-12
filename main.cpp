@@ -120,6 +120,9 @@ CSE40166::Point* headPos;
 GLuint skybox[6];
 GLuint skyboxindex;
 float skyboxwidth = 2000;
+GLuint skydome;
+GLuint skydomeindex;
+float skydomeradius = 100;
 // background textures
 
 GLuint passthroughShader, barrelShader, simpleShader; // GLSL shaders
@@ -533,6 +536,7 @@ void display() {
 
 	glPushMatrix();
 		glCallList(groundList);
+		glCallList(skydomeindex);
 		glCallList(skyboxindex);
 	glPopMatrix();
 
@@ -805,6 +809,23 @@ void initMaterials() {
 	defaultwhite = new CSE40166::Material(CSE40166::CSE40166_MATERIAL_WHITE);
 }
 
+/* void drawSkydome()
+	Displays a skydome as background - alternative to skybox
+*/
+void drawSkydome() {
+	glPushMatrix();
+		glRotatef(-90, 1, 0, 0);
+
+		GLUquadricObj* quad = gluNewQuadric();
+		gluQuadricNormals(quad, GL_SMOOTH);
+		gluQuadricTexture(quad, GL_TRUE);
+		gluQuadricOrientation(quad, GLU_INSIDE); 
+		glBindTexture(GL_TEXTURE_2D, skydome);
+		gluSphere(quad, skydomeradius, 100, 100);
+		gluDeleteQuadric(quad);
+	glPopMatrix();
+}
+
 /* void drawSkybox()
 	Displays skybox as background for game
 */
@@ -950,67 +971,47 @@ void drawSkybox() {
 	// bottom
 }
 
-/*	void initSkybox(strings skyboxname)
-		Initialzies a skybox from textures with the given name.
+/*	GLuint loadTexture(string texname)
+		loads the texture with the given file name
+*/
+GLuint loadTexture(string texname) {
+	GLuint tex = SOIL_load_OGL_texture(texname.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	return tex;
+}
+
+/* void initSkydome(string skydomename)
+	Initializes a skydome from the texture with the given name.
+*/
+void initSkydome(string skydomename) {
+	skydome = loadTexture(skydomename);
+
+	skydomeindex = glGenLists(1);
+	glNewList(skydomeindex, GL_COMPILE);
+		drawSkydome();
+	glEndList();
+	// creates displaylist to be used in display()
+}
+
+/* void initSkybox(string skyboxname)
+	Initialzies a skybox from textures with the given name.
 */
 void initSkybox(string skyboxname) {
- 	skybox[0] = SOIL_load_OGL_texture((skyboxname + "/" + skyboxname + "_top.jpg").c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, skybox[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
-	// top
-
-	skybox[1] = SOIL_load_OGL_texture((skyboxname + "/" + skyboxname + "_front.jpg").c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, skybox[1]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
-	// front
-
-	skybox[2] = SOIL_load_OGL_texture((skyboxname + "/" + skyboxname + "_left.jpg").c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, skybox[2]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
-	// left	
-
-	skybox[3] = SOIL_load_OGL_texture((skyboxname + "/" + skyboxname + "_back.jpg").c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, skybox[3]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
-	// back	
-
-	skybox[4] = SOIL_load_OGL_texture((skyboxname + "/" + skyboxname + "_right.jpg").c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, skybox[4]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	// right
-
-	skybox[5] = SOIL_load_OGL_texture((skyboxname + "/" + skyboxname + "_bottom.jpg").c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, skybox[5]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	// floor		
+ 	skybox[0] = loadTexture((skyboxname + "/" + skyboxname + "_top.jpg").c_str());
+ 	skybox[1] = loadTexture((skyboxname + "/" + skyboxname + "_front.jpg").c_str());
+ 	skybox[2] = loadTexture((skyboxname + "/" + skyboxname + "_left.jpg").c_str());
+ 	skybox[3] = loadTexture((skyboxname + "/" + skyboxname + "_back.jpg").c_str());
+ 	skybox[4] = loadTexture((skyboxname + "/" + skyboxname + "_right.jpg").c_str());
+ 	skybox[5] = loadTexture((skyboxname + "/" + skyboxname + "_floor.jpg").c_str());
 
 	skyboxindex = glGenLists(1);
 	glNewList(skyboxindex, GL_COMPILE);
-		drawSkybox();		
+		drawSkybox();
 	glEndList();
 	// creates displaylist to be used in display()
 }
@@ -1129,20 +1130,6 @@ int setupShaders(char* v, char* f) {
 	if(!link_ok) fprintf(stderr, "glLinkProgram Error ");
 	
 	return program;
-}
-
-/*	GLuint loadTexture(string texname)
-		loads the texture with the given file name
-*/
-GLuint loadTexture(string texname) {
-	GLuint tex = SOIL_load_OGL_texture(texname.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	return tex;
 }
 
 /* void initSounds()
@@ -1283,14 +1270,14 @@ int main(int argc, char* argv[]) {
 	firstpersoncam->look();
 	// create cameras
 	
-	// initSkybox(NAME)
+//	initSkybox("space");
+	initSkydome("sky.jpg");
 	initLighting();
 	initMaterials();
 	initSounds();
 	// other parts of scene
 
-//	texture = loadTexture("/Users/Jeremy/Pictures/2048.jpg");
-	texture = loadTexture("sand.jpg");
+	texture = loadTexture("grass.jpg");
 	Terrain* t = new Terrain(texture);
 	groundList = glGenLists(1);
 	glNewList(groundList, GL_COMPILE);
