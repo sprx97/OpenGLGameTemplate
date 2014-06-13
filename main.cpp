@@ -92,9 +92,9 @@ ALuint source[NUM_SOURCES];
 ALuint buffer[NUM_SOUNDS];
 // sounds
 
-CSE40166::Camera* arccam = NULL;
+CSE40166::Camera* topdowncam = NULL;
 CSE40166::Camera* firstpersoncam = NULL;
-#define ARCCAM 0
+#define TOPDOWNCAM 0
 #define FIRSTPERSONCAM 1
 int CAMERA = FIRSTPERSONCAM;
 /* Two Cameras
@@ -189,11 +189,8 @@ void key_press(unsigned char key, int x, int y) {
 		exit(0);
 	}
 	if(key == key_Change_Camera) {
-		if (CAMERA == ARCCAM) {
-			CAMERA = FIRSTPERSONCAM;
-		} else {
-			CAMERA = ARCCAM;
-		}
+		if (CAMERA == TOPDOWNCAM) CAMERA = FIRSTPERSONCAM;
+		else CAMERA = TOPDOWNCAM;
 	}
 	if(key == key_Enable_Oculus) {
 		RIFT = !RIFT; 
@@ -408,7 +405,7 @@ void drawCrosshairs() {
 void drawAxes() {
 	glDisable(GL_LIGHTING);
 	
-	glLineWidth(5.0);
+	glLineWidth(2.0);
 	
 	glBegin(GL_LINES);
 		glColor3f(1, 0, 0);
@@ -480,6 +477,7 @@ void drawFPS() {
 */
 void drawLighting() {
 	light->setPosition(new CSE40166::Point(bodyPos->getX(), 10.0, bodyPos->getZ()));
+	light->setDirection(new CSE40166::Vector(0.0, -1.0, 0.0));
 
 	glEnable(GL_LIGHTING);
 	if(light->isLightOn()) light->shine();
@@ -489,12 +487,6 @@ void drawLighting() {
 	This function orients the cameras
 */
 void drawCameras() {
-	arccam->setRadius(15.0);
-	arccam->setTheta(M_PI/3.0);
-	arccam->setPhi(-2.0*M_PI/3.0);
-	arccam->followObject(dummyObject);
-	arccam->computeArcballPosition();
-
 	if(RIFT) {
 		float dx = cos(headPitch)*sin(headYaw);
 		float dy = sin(headPitch);
@@ -504,7 +496,8 @@ void drawCameras() {
 		firstpersoncam->setLookAt(new CSE40166::Point(headPos->getX() + 2*dx,
 											headPos->getY() + 2*dy,
 											headPos->getZ() + 2*dz));
-	}else {
+	}
+	else {
 		float dx = cos(bodyPitch)*sin(bodyYaw);
 		float dy = sin(bodyPitch);
 		float dz = cos(bodyPitch)*cos(bodyYaw);
@@ -514,10 +507,8 @@ void drawCameras() {
 											bodyPos->getY() + 2*dy,
 											bodyPos->getZ() + 2*dz));
 	}
-	//firstpersoncam->setLookAt(new Point(0,0,0));
-	firstpersoncam->setUp(new CSE40166::Vector(0, 1, 0));
 	
-	if(CAMERA == ARCCAM) arccam->look();
+	if(CAMERA == TOPDOWNCAM) topdowncam->look();
 	else if(CAMERA == FIRSTPERSONCAM) firstpersoncam->look();
 	
 	// remember to move listeners with the cameras
@@ -698,12 +689,13 @@ void displayMulti() {
 	glUseProgram(0);
 	glDisable(GL_DEPTH_TEST);
 	glPushMatrix();
-		drawDirectionVectors();
-		drawCrosshairs();
+		if(CAMERA == FIRSTPERSONCAM) {
+			drawDirectionVectors();
+			drawCrosshairs();
+		}
+		if(CAMERA == TOPDOWNCAM) drawAxes();
 	glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
-//	drawGrid();
-//	drawAxes();
 	drawFPS(); // writes FPS to screen
 	drawDebugInfo(); // writes debug info to screen
 
@@ -799,10 +791,10 @@ void initLighting() {
 	light->setAmbient(color);
 	// color
 	
-	light->setPosition(new CSE40166::Point(0.0, 10.0, 0.0));
+	light->setPosition(new CSE40166::Point(0.0, 25.0, 0.0));
 	light->setDirection(new CSE40166::Vector(0.0, -1.0, 0.0));
-	light->setCutoff(45);
-	light->setExponent(10);
+	light->setCutoff(20);
+//	light->setExponent(10);
 
 	light->turnLightOn();
 	// position
@@ -1261,13 +1253,11 @@ int main(int argc, char* argv[]) {
 	// load texture for object
 	// create objects
 	
-	arccam = new CSE40166::Camera(CSE40166::ARCBALLCAM);
-	arccam->setRadius(15.0);
-	arccam->setTheta(M_PI/3.0);
-	arccam->setPhi(-2.0*M_PI/3.0);
-	arccam->followObject(dummyObject);
-	arccam->computeArcballPosition();
-	arccam->look();
+	topdowncam = new CSE40166::Camera(CSE40166::OTHER);
+	topdowncam->setEye(new CSE40166::Point(.1, 75.0, 0.0));
+	topdowncam->setLookAt(new CSE40166::Point(0, 0, 0));
+	topdowncam->setUp(new CSE40166::Vector(0, 1, 0));
+	topdowncam->look();
 
 	firstpersoncam = new CSE40166::Camera(CSE40166::OTHER);
 	firstpersoncam->setEye(new CSE40166::Point(-5, 2, 0));
