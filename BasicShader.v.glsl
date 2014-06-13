@@ -17,5 +17,4 @@ void main(void) {
 	float attenuation = 1.0 / (gl_LightSource[0].constantAttenuation + gl_LightSource[0].linearAttenuation * dist + gl_LightSource[0].quadraticAttenuation * dist * dist);
 	lightVector = normalize(lightVector);
 	// calculate light vector
-
 }

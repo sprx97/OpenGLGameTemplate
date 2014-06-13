@@ -474,7 +474,7 @@ void drawFPS() {
 */
 void drawLighting() {
 	lightpos->setX(bodyPos->getX());
-	lightpos->setY(10.0);
+	lightpos->setY(25.0);
 	lightpos->setZ(bodyPos->getZ());
 
 	glEnable(GL_LIGHTING);
@@ -1285,7 +1285,7 @@ int main(int argc, char* argv[]) {
 	groundList = glGenLists(1);
 	glNewList(groundList, GL_COMPILE);
 		t->draw();
-		t->drawNormals();
+//		t->drawNormals();
 	glEndList();
 	// initializes a (hopefully) randomly generated terrain
 	
