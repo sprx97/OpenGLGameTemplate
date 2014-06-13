@@ -233,9 +233,9 @@ void Terrain::draw() {
 	for(double z = 0.0; z < mapheight-delta; z += delta) {
 		glBegin(GL_TRIANGLE_STRIP);
 			for(double x = 0.0; x < mapwidth-delta; x += delta*2) {
-				glNormal3f(normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].x,
-						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].y,
-						   normals[(int)(x/mapwidth)][(int)((z+delta)/mapheight)].z);
+				glNormal3f(normals[(int)(x/delta)][(int)((z+delta)/delta)].x,
+						   normals[(int)(x/delta)][(int)((z+delta)/delta)].y,
+						   normals[(int)(x/delta)][(int)((z+delta)/delta)].z);
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 
@@ -245,15 +245,15 @@ void Terrain::draw() {
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
 
-				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].x,
-						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].y,
-						   normals[(int)((x+delta)/mapwidth)][(int)((z+delta)/mapheight)].z);
+				glNormal3f(normals[(int)((x+delta)/delta)][(int)((z+delta)/delta)].x,
+						   normals[(int)((x+delta)/delta)][(int)((z+delta)/delta)].y,
+						   normals[(int)((x+delta)/delta)][(int)((z+delta)/delta)].z);
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)+1], z+delta-mapwidth/2.0);
 				
-				glNormal3f(normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].x,
-						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].y,
-						   normals[(int)((x+delta)/mapwidth)][(int)(z/mapheight)].z);
+				glNormal3f(normals[(int)((x+delta)/delta)][(int)(z/delta)].x,
+						   normals[(int)((x+delta)/delta)][(int)(z/delta)].y,
+						   normals[(int)((x+delta)/delta)][(int)(z/delta)].z);
 				glTexCoord2f(tilefactor*(x+delta)/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x+delta-mapwidth/2.0, heightmap[(int)(x/delta)+1][(int)(z/delta)], z-mapheight/2.0);
 			}
