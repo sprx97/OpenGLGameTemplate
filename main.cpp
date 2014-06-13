@@ -36,7 +36,7 @@
 // OpenGL/AL
 
 
-#include <SOIL/soil.h> // Simple OpenGL Image Library
+#include <SOIL/SOIL.h> // Simple OpenGL Image Library
 #include <CSE40166/CSE40166.h>
 #include "globals.h"
 #include "Terrain.h"
