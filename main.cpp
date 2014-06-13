@@ -97,19 +97,16 @@ CSE40166::Camera* firstpersoncam = NULL;
 #define TOPDOWNCAM 0
 #define FIRSTPERSONCAM 1
 int CAMERA = FIRSTPERSONCAM;
-/* Two Cameras
-	The Arcball Camera is the standard camera that focuses on one object
-	and can zoom and rotate around it. The first person camera looks in the
-	direction the user is facing from the user's position.
-*/
+// Two Cameras
 
 CSE40166::SpotLight* light;
+CSE40166::Point* lightpos;
+CSE40166::Vector* lightdir;
 // a single light
 
 CSE40166::Material* defaultwhite;
 // materials
 
-CSE40166::Object* dummyObject;
 CSE40166::Object* body;
 CSE40166::Object* head;
 CSE40166::Point* point;
@@ -476,8 +473,9 @@ void drawFPS() {
 	Shines the lights from their location.
 */
 void drawLighting() {
-	light->setPosition(new CSE40166::Point(bodyPos->getX(), 10.0, bodyPos->getZ()));
-	light->setDirection(new CSE40166::Vector(0.0, -1.0, 0.0));
+	lightpos->setX(bodyPos->getX());
+	lightpos->setY(10.0);
+	lightpos->setZ(bodyPos->getZ());
 
 	glEnable(GL_LIGHTING);
 	if(light->isLightOn()) light->shine();
@@ -540,9 +538,21 @@ void display() {
 	// bind and display textures
 	// draw non-textured GL objects
 	
+/*
+	glEnable(GL_LIGHTING);
+
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+*/	
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glPushMatrix();
-		// draw overlays
+		if(CAMERA == TOPDOWNCAM) drawAxes();
 	glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
 }
@@ -693,7 +703,6 @@ void displayMulti() {
 			drawDirectionVectors();
 			drawCrosshairs();
 		}
-		if(CAMERA == TOPDOWNCAM) drawAxes();
 	glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
 	drawFPS(); // writes FPS to screen
@@ -791,9 +800,11 @@ void initLighting() {
 	light->setAmbient(color);
 	// color
 	
-	light->setPosition(new CSE40166::Point(0.0, 25.0, 0.0));
-	light->setDirection(new CSE40166::Vector(0.0, -1.0, 0.0));
-	light->setCutoff(20);
+	lightpos = new CSE40166::Point(0.0, 25.0, 0.0);
+	lightdir = new CSE40166::Vector(0.0, -1.0, 0.0);
+	light->setPosition(lightpos);
+	light->setDirection(lightdir);
+	light->setCutoff(45);
 //	light->setExponent(10);
 
 	light->turnLightOn();
@@ -1236,20 +1247,16 @@ int main(int argc, char* argv[]) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	dummyObject = new CSE40166::Object(); // load obj file
-	dummyObject->getLocation()->setX(0.0);
-	dummyObject->getLocation()->setY(0.0);
-	dummyObject->getLocation()->setZ(0.0);
 	body = new CSE40166::Object();
 	bodyPos = body->getLocation();
-	bodyPos->setX(-5.0);
+	bodyPos->setX(0.0);
 	bodyPos->setY(2.0);
-	bodyPos->setZ(0);
+	bodyPos->setZ(0.0);
 	head = new CSE40166::Object();
 	headPos = head->getLocation();
-	headPos->setX(-5.0);
+	headPos->setX(0.0);
 	headPos->setY(2.0);
-	headPos->setZ(0);
+	headPos->setZ(0.0);
 	// load texture for object
 	// create objects
 	
@@ -1260,8 +1267,8 @@ int main(int argc, char* argv[]) {
 	topdowncam->look();
 
 	firstpersoncam = new CSE40166::Camera(CSE40166::OTHER);
-	firstpersoncam->setEye(new CSE40166::Point(-5, 2, 0));
-	firstpersoncam->setLookAt(new CSE40166::Point(0, 0, 0));
+	firstpersoncam->setEye(new CSE40166::Point(0, 0, 0));
+	firstpersoncam->setLookAt(new CSE40166::Point(-1, 0, 0));
 	firstpersoncam->setUp(new CSE40166::Vector(0, 1, 0));
 	firstpersoncam->look();
 	// create cameras
@@ -1278,6 +1285,7 @@ int main(int argc, char* argv[]) {
 	groundList = glGenLists(1);
 	glNewList(groundList, GL_COMPILE);
 		t->draw();
+		t->drawNormals();
 	glEndList();
 	// initializes a (hopefully) randomly generated terrain
 	

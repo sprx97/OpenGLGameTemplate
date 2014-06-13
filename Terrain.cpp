@@ -7,6 +7,7 @@
 #include "Terrain.h"
 #include <algorithm>
 #include <math.h>
+#include <iostream>
 
 using namespace std;
 
@@ -190,6 +191,26 @@ Terrain::Terrain(GLuint tex, float f, float p, float o, float a) {
 	calculateNormals();
 }
 
+/* void Terrain::drawNormals()
+	Draws the normal vectors for each point
+*/
+void Terrain::drawNormals() {
+	glUseProgram(0);
+	glDisable(GL_LIGHTING);
+	glLineWidth(1.0);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	for(double z = 0.0; z < mapheight; z += delta*5) {
+		glBegin(GL_LINES);
+			for(double x = 0.0; x < mapwidth; x += delta*5) {
+				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
+				_Vector normal = normals[(int)(x/delta)][(int)(z/delta)];
+				glVertex3f(x-mapwidth/2.0+normal.x, heightmap[(int)(x/delta)][(int)(z/delta)]+normal.y, z-mapheight/2.0+normal.z);
+			}
+		glEnd();
+	}
+	glEnable(GL_LIGHTING);
+}
+
 /* void Terrain::draw()
 	Renders this terrain to the screen
 */
@@ -218,9 +239,9 @@ void Terrain::draw() {
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*(z+delta)/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)+1], z+delta-mapheight/2.0);
 
-				glNormal3f(normals[(int)(x/mapwidth)][(int)(z/mapheight)].x,
-						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].y,
-						   normals[(int)(x/mapwidth)][(int)(z/mapheight)].z);
+				glNormal3f(normals[(int)(x/delta)][(int)(z/delta)].x,
+						   normals[(int)(x/delta)][(int)(z/delta)].y,
+						   normals[(int)(x/delta)][(int)(z/delta)].z);
 				glTexCoord2f(tilefactor*x/mapwidth, tilefactor*z/mapheight);
 				glVertex3f(x-mapwidth/2.0, heightmap[(int)(x/delta)][(int)(z/delta)], z-mapheight/2.0);
 

@@ -67,6 +67,7 @@ class Terrain { // Extend object
 		float smoothNoise(double x, double z);
 		void calculateNormals();		
 		void draw();
+		void drawNormals();
 
 	private:
 		double heightmap[(int)(mapwidth/delta)+1][(int)(mapheight/delta)+1];
