@@ -132,6 +132,10 @@ GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 GLuint texture; // texture for terrain
 GLuint groundList; // call list for terrain
 
+#define numpoints 100
+float randPoints[numpoints][2];
+// variables for the polygon map
+
 DeviceManager* pManager;
 HMDDevice* pHMD;
 HMDInfo hmdInfo;
@@ -396,12 +400,27 @@ void drawCrosshairs() {
 	glEnable(GL_LIGHTING);
 }
 
+/* void drawPolygonMap()
+	Draws a randomly generated polygon map
+*/
+void drawPolygonMap() {
+	glColor4f(1.0, 0.0, 0.0, 1.0);
+	glDisable(GL_COLOR_MATERIAL);
+	for(int n = 0; n < numpoints; n++) {
+		glTranslatef(randPoints[n][0], 5, randPoints[n][1]);
+		GLUquadricObj* pt = gluNewQuadric();
+		gluSphere(pt, .25, 5, 5);
+		gluDeleteQuadric(pt);
+		glTranslatef(-randPoints[n][0], -5, -randPoints[n][1]);
+	}
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+}
+
 /* void drawAxes()
 	Draws x, y, and z axes in red, green, and blue. For debugging.
 */
-void drawAxes() {
-	glDisable(GL_LIGHTING);
-	
+void drawAxes() {	
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINES);
@@ -435,8 +454,6 @@ void drawAxes() {
 	glEnd();
 
 	glLineWidth(1.0);
-	
-	glEnable(GL_LIGHTING);
 }
 
 /* void drawFPS()
@@ -538,23 +555,16 @@ void display() {
 	// bind and display textures
 	// draw non-textured GL objects
 	
-/*
-	glEnable(GL_LIGHTING);
-
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);
-
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-*/	
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glPushMatrix();
-		if(CAMERA == TOPDOWNCAM) drawAxes();
+		if(CAMERA == TOPDOWNCAM) {
+			glDisable(GL_LIGHTING);
+			drawAxes();
+			drawPolygonMap();
+		}
 	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);
 }
 
 /* void screenshot(char filename[60], int x, int y)
@@ -1156,6 +1166,15 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
+/* void initPolygonMap()
+	This funciton creates a polygon map to randomly generate terrain.
+*/
+void initPolygonMap() {
+	for(int n = 0; n < 100; n++) {
+		randPoints[n][0] = ((float)rand()/RAND_MAX) * mapwidth - (mapwidth/2.0); // x
+		randPoints[n][1] = ((float)rand()/RAND_MAX) * mapheight - (mapheight/2.0); // z
+	}
+}
 
 void configOVR() {
 	pManager = DeviceManager::Create();
@@ -1278,6 +1297,7 @@ int main(int argc, char* argv[]) {
 	initLighting();
 	initMaterials();
 	initSounds();
+	initPolygonMap();
 	// other parts of scene
 
 	texture = loadTexture("grass.jpg");
