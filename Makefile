@@ -6,7 +6,8 @@ CFLAGS = -Wall -g -w -fno-rtti
 ifeq ($(shell uname), Darwin)
 	LIBS = -framework OpenGL -framework Cocoa -framework ApplicationServices -framework CoreFoundation -framework IOKit
 else
-	LIBS = -lGL -lGLU
+	LIBS = -lX11 -ludev -lXrandr -lXinerama
+	CFLAGS += -pthread
 endif
 
 # CSE40166 includes
@@ -26,8 +27,8 @@ else
 	ifneq "$(wildcard $(FREEGLUT))" ""
 		INCPATH += -I$(FREEGLUT)/include
 		LIBPATH += -L$(FREEGLUT)/lib
-		LIBS += -lglut
 	endif
+	LIBS += -lglut
 endif
 
 # FREEALUT
@@ -42,8 +43,10 @@ ifneq "$(wildcard $(FREEALUT))" ""
 		LIBPATH += -L$(FREEALUT)/lib -Wl
 	else
 		LIBPATH += -L$(FREEALUT)/lib -Wl, --rpath -Wl, $(FREEALUT)/lib
-		LIBS += -lalut
 	endif
+endif
+ifneq ($(shell uname), Darwin)
+	LIBS += -lalut
 endif
 
 # OpenAL includes
@@ -54,8 +57,8 @@ else
 	ifneq "$(wildcard $(OpenAL))" ""
 		INCPATH += -I$(OPENAL)/include
 		LIBPATH += -L$(OPENAL)/lib -Wl, --rpath -Wl,$(OPENAL)/lib
-		LIBS += -lopenal
 	endif
+	LIBS += -lopenal
 endif
 
 # GLEW includes
@@ -67,8 +70,8 @@ else
 	ifneq "$(wildcard $(GLEW))" ""
 		INCPATH += -I$(GLEW)/include
 		LIBPATH += -L$(GLEW)/lib -Wl,--rpath -Wl,$(GLEW)/lib
-		LIBS += -lGLEW
 	endif
+	LIBS += -lGLEW -lGLU -lGL
 endif
 
 # SOIL includes
@@ -82,8 +85,12 @@ LIBS += -lSOIL
 
 # OVR includes
 LibOVR = LibOVR
+ifeq ($(shell uname), Darwin)
 LIBPATH += -L$(LibOVR)/Lib/MacOS/Release
-INCPATH += -I$(LibOVR)/include
+else
+LIBPATH += -L$(LibOVR)/Lib/Linux/Release/x86_64
+endif
+INCPATH += -I$(LibOVR)/Include
 LIBS += -lovr
 
 all: $(TARGET)
