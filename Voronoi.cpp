@@ -4,6 +4,7 @@
 	#include <GL/glut.h>
 #endif
 
+#include <iostream>
 #include <algorithm>
 #include "globals.h"
 #include "Voronoi.h"
@@ -19,19 +20,16 @@ Voronoi::Voronoi(int numpoints) {
 	sort(sites.begin(), sites.end(), sortPoints);
 }
 
-/*
-void drawPolygonMap() {
+void Voronoi::draw() {
 	glColor4f(1.0, 0.0, 0.0, 1.0);
 	glDisable(GL_COLOR_MATERIAL);
-	for(int n = 0; n < numpoints; n++) {
-//		cout << randPoints[n][0] << " " << randPoints[n][1] << endl;
-		glTranslatef(randPoints[n][0], 5, randPoints[n][1]);
+	for(int n = 0; n < sites.size(); n++) {
+		cout << sites[n].x << " " << sites[n].z << endl;
+		glTranslatef(sites[n].x, 5, sites[n].z);
 		GLUquadricObj* pt = gluNewQuadric();
 		gluSphere(pt, .25, 5, 5);
 		gluDeleteQuadric(pt);
-		glTranslatef(-randPoints[n][0], -5, -randPoints[n][1]);
+		glTranslatef(-sites[n].x, -5, -sites[n].z);
 	}
-	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 }
-*/

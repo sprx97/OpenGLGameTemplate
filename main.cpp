@@ -130,6 +130,8 @@ GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 GLuint texture; // texture for terrain
 GLuint groundList; // call list for terrain
 
+Voronoi* v;
+
 DeviceManager* pManager;
 HMDDevice* pHMD;
 HMDInfo hmdInfo;
@@ -539,6 +541,8 @@ void display() {
 		if(CAMERA == TOPDOWNCAM) {
 			glDisable(GL_LIGHTING);
 			drawAxes();
+			v->draw();
+			glEnable(GL_LIGHTING);
 		}
 	glPopMatrix();
 }
@@ -1265,7 +1269,7 @@ int main(int argc, char* argv[]) {
 	initSounds();
 	// other parts of scene
 
-	Voronoi* v = new Voronoi(100);
+	v = new Voronoi(100);
 
 	texture = loadTexture("grass.jpg");
 	Terrain* t = new Terrain(texture);

@@ -14,6 +14,7 @@ struct _Point2D {
 class Voronoi {
 	public:
 		Voronoi(int numpoints);
+		void draw();
 	private:
 		vector<_Point2D> sites;
 };
