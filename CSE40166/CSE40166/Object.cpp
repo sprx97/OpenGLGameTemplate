@@ -4,7 +4,7 @@
 	#include <GL/glut.h>
 #endif
 
-#include <SOIL/soil.h>
+#include <SOIL/SOIL.h>
 
 #include "Object.h"
 #include "Point.h"
