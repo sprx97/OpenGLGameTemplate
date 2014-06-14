@@ -35,13 +35,11 @@
 #endif
 // OpenGL/AL
 
-
 #include <SOIL/soil.h> // Simple OpenGL Image Library
-#include <CSE40166/CSE40166.h>
+#include <CSE40166/CSE40166.h> // This is a library that our professor made for us. It has Cameras, Materials, Lights, Objects, and more!
 #include "globals.h"
 #include "Terrain.h"
-/*	This is a library that our professor made for us.
-	It has Cameras, Materials, Lights, Objects, and more! */
+#include "Voronoi.h"
 
 #include <fstream>
 #include <iostream>
@@ -131,10 +129,6 @@ GLuint framebuffer, depthbuffer, renderedTexture; // for rendering
 
 GLuint texture; // texture for terrain
 GLuint groundList; // call list for terrain
-
-#define numpoints 100
-float randPoints[numpoints][2];
-// variables for the polygon map
 
 DeviceManager* pManager;
 HMDDevice* pHMD;
@@ -400,23 +394,6 @@ void drawCrosshairs() {
 	glEnable(GL_LIGHTING);
 }
 
-/* void drawPolygonMap()
-	Draws a randomly generated polygon map
-*/
-void drawPolygonMap() {
-	glColor4f(1.0, 0.0, 0.0, 1.0);
-	glDisable(GL_COLOR_MATERIAL);
-	for(int n = 0; n < numpoints; n++) {
-		glTranslatef(randPoints[n][0], 5, randPoints[n][1]);
-		GLUquadricObj* pt = gluNewQuadric();
-		gluSphere(pt, .25, 5, 5);
-		gluDeleteQuadric(pt);
-		glTranslatef(-randPoints[n][0], -5, -randPoints[n][1]);
-	}
-	glEnable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
-}
-
 /* void drawAxes()
 	Draws x, y, and z axes in red, green, and blue. For debugging.
 */
@@ -562,7 +539,6 @@ void display() {
 		if(CAMERA == TOPDOWNCAM) {
 			glDisable(GL_LIGHTING);
 			drawAxes();
-			drawPolygonMap();
 		}
 	glPopMatrix();
 }
@@ -1166,16 +1142,6 @@ void initSounds() {
 	// store buffered data to alSources
 }
 
-/* void initPolygonMap()
-	This funciton creates a polygon map to randomly generate terrain.
-*/
-void initPolygonMap() {
-	for(int n = 0; n < 100; n++) {
-		randPoints[n][0] = ((float)rand()/RAND_MAX) * mapwidth - (mapwidth/2.0); // x
-		randPoints[n][1] = ((float)rand()/RAND_MAX) * mapheight - (mapheight/2.0); // z
-	}
-}
-
 void configOVR() {
 	pManager = DeviceManager::Create();
 	pHMD = pManager->EnumerateDevices<HMDDevice>().CreateDevice();
@@ -1297,8 +1263,9 @@ int main(int argc, char* argv[]) {
 	initLighting();
 	initMaterials();
 	initSounds();
-	initPolygonMap();
 	// other parts of scene
+
+	Voronoi* v = new Voronoi(100);
 
 	texture = loadTexture("grass.jpg");
 	Terrain* t = new Terrain(texture);

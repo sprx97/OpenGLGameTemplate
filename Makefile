@@ -88,13 +88,16 @@ LIBS += -lovr
 
 all: $(TARGET)
 
-$(TARGET): main.o Terrain.o
+$(TARGET): main.o Terrain.o Voronoi.o
 	$(CXX) $(CFLAGS) $(INCPATH) -o $@ $^ $(LIBPATH) $(LIBS)
 
 main.o: main.cpp globals.h
 	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
 
 Terrain.o: Terrain.cpp globals.h
+	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
+
+Voronoi.o: Voronoi.cpp globals.h
 	$(CXX) $(CFLAGS) $(INCPATH) -c -o $@ $<
 
 clean:
