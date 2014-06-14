@@ -35,7 +35,7 @@
 #endif
 // OpenGL/AL
 
-#include <SOIL/soil.h> // Simple OpenGL Image Library
+#include <SOIL/SOIL.h> // Simple OpenGL Image Library
 #include <CSE40166/CSE40166.h> // This is a library that our professor made for us. It has Cameras, Materials, Lights, Objects, and more!
 #include "globals.h"
 #include "Terrain.h"
