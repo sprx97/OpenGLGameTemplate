@@ -18,6 +18,11 @@ Voronoi::Voronoi(int numpoints) {
 		sites.push_back(pt);
 	}
 	sort(sites.begin(), sites.end(), sortPoints);
+
+	_Parabola test(1, 2, 5);
+	cout << test.getVertex().x << " " << test.getVertex().z << endl;
+	cout << test.getFocus().x << " " << test.getFocus().z << endl;
+	cout << test.getDirectrix() << endl;
 }
 
 void Voronoi::draw() {
