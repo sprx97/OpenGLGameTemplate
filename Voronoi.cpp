@@ -34,7 +34,7 @@ void Voronoi::draw() {
 		glTranslatef(-sites[n].x, -5, -sites[n].z);
 	}
 
-	_Parabola test(.25, .5, 1);
+	_Parabola test(.03, -.05, 5, VERTICAL);
 //	cout << test.getVertex().x << " " << test.getVertex().z << endl;
 //	cout << test.getFocus().x << " " << test.getFocus().z << endl;
 //	cout << test.getDirectrix() << endl;
