@@ -6,6 +6,7 @@
 
 #include <math.h>
 #include <vector>
+#include <deque>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ struct _Point2D {
 
 struct _Parabola {
 	float a, b, c;
+	float start, end;
 	Orientation orientation;
 
 	_Parabola(float a, float b, float c, Orientation o) {
@@ -31,6 +33,14 @@ struct _Parabola {
 		this->b = b;
 		this->c = c;
 		orientation = o;
+		if(o == VERTICAL) {
+			start = -mapwidth/2.0;
+			end = mapwidth/2.0;
+		}
+		else {
+			start = -mapheight/2.0;
+			end = mapheight/2.0;
+		}
 	}
 
 	_Parabola(_Point2D focus, _Point2D vertex) {
@@ -105,7 +115,7 @@ struct _Parabola {
 		glLineWidth(2.0);
 		if(orientation == HORIZONTAL) {
 			glBegin(GL_LINES);
-				for(int x = -mapwidth/2.0; x < mapwidth/2.0; x++) {
+				for(int x = start; x < end; x++) {
 					float y = getVal(x);
 
 					float x2 = x + 1;
@@ -129,7 +139,7 @@ struct _Parabola {
 		} 
 		else {
 			glBegin(GL_LINES);
-				for(int x = -mapheight/2.0; x < mapheight/2.0; x++) {
+				for(int x = start; x < end; x++) {
 					float y = getVal(x);
 
 					float x2 = x+1;
@@ -154,10 +164,19 @@ struct _Parabola {
 	}
 };
 
+struct _Edge {
+	_Point2D start, end;
+};
+
 class Voronoi {
 	public:
 		Voronoi(int numpoints);
 		void draw();
+		void step();
 	private:
+		deque<_Point2D> events;
 		vector<_Point2D> sites;
+		vector<_Edge> edges;
+		vector<_Parabola> beachline;
+		float sweepline;
 };

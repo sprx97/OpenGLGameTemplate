@@ -19,7 +19,16 @@ Voronoi::Voronoi(int numpoints) {
 	}
 	sort(sites.begin(), sites.end(), sortPoints);
 
+	for(int n = 0; n < sites.size(); n++) {
+		events.push_back(sites[n]);
+	}
+	sweepline = -mapwidth/2.0;
+}
 
+void Voronoi::step() {
+	if(events.size() == 0) return;
+	sweepline = events[0].x;
+	events.pop_front();
 }
 
 void Voronoi::draw() {
@@ -32,13 +41,21 @@ void Voronoi::draw() {
 		gluSphere(pt, .25, 5, 5);
 		gluDeleteQuadric(pt);
 		glTranslatef(-sites[n].x, -5, -sites[n].z);
-	}
+	} // draws the sites
 
-	_Parabola test(.03, -.05, 5, VERTICAL);
+	glColor4f(0.0, 1.0, 0.0, 1.0);
+	glBegin(GL_LINES);
+		for(int z = -mapwidth/2.0; z < mapwidth/2.0; z++) {
+			glVertex3f(sweepline, 5, z);
+			glVertex3f(sweepline, 5, z+1);
+		}
+	glEnd();
+
+//	_Parabola test(.03, -.05, 5, VERTICAL);
 //	cout << test.getVertex().x << " " << test.getVertex().z << endl;
 //	cout << test.getFocus().x << " " << test.getFocus().z << endl;
 //	cout << test.getDirectrix() << endl;
-	test.draw();
+//	test.draw();
 
 	glEnable(GL_COLOR_MATERIAL);
 

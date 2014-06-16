@@ -214,6 +214,7 @@ void key_press(unsigned char key, int x, int y) {
 		glutWarpPointer(width/2, height/2);
 #endif
 	}
+	if(key == ' ') v->step();
 	// one-time immediate actions by key go here
 
 	keys[key] = 1;
