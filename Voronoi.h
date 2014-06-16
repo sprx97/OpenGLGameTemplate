@@ -1,3 +1,9 @@
+#ifdef __APPLE__
+	#include <GLUT/glut.h>
+#else
+	#include <GL/glut.h>
+#endif
+
 #include <math.h>
 #include <vector>
 
@@ -20,7 +26,7 @@ struct _Parabola {
 		this->c = c;
 	}
 
-	_Parabola(_Point2D focus, float directrix, int orientation) {
+	_Parabola(_Point2D focus, float directrix) {
 		// calculate a, b, and c
 	}
 
@@ -51,8 +57,36 @@ struct _Parabola {
 		return (k - p);
 	}
 
-	void draw() {
+	float getY(float x) {
+		return (a*x*x + b*x + c);
+	}
 
+	void draw() {
+		glColor4f(0.0, 0.0, 1.0, 1.0);
+		glLineWidth(2.0);
+		glBegin(GL_LINES);
+			for(int x = -mapwidth/2.0; x < mapwidth/2.0; x++) {
+				float y = getY(x);
+
+				float x2 = x + 1;
+				float y2 = getY(x2);
+
+				glVertex3f(x, 5, y);
+				glVertex3f(x2, 5, y2);
+			} // draws parabola
+
+			for(int x = -mapwidth/2.0; x < mapwidth/2.0; x++) {
+				glVertex3f(x, 5, getDirectrix());
+				glVertex3f(x+1, 5, getDirectrix());
+			} // draws directrix
+		glEnd();
+
+		glTranslatef(getFocus().x, 5, getFocus().z);
+		GLUquadricObj* f = gluNewQuadric();
+		gluSphere(f, .25, 5, 5);
+		gluDeleteQuadric(f);			
+		glTranslatef(-getFocus().x, -5, -getFocus().z);
+		// draws focus
 	}
 };
 
