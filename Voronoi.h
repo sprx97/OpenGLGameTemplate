@@ -139,7 +139,11 @@ struct _Parabola {
 		return (a*x*x + b*x + c);
 	}
 
-	_Point2D getIntersection(_Parabola other) {
+	float getSlope(float x) {
+		return (2*a*x + b);
+	}
+
+	vector<_Point2D> getIntersection(_Parabola other) {
 		float A = this->a - other.a;
 		float B = this->b - other.b;
 		float C = this->c - other.c;
@@ -150,7 +154,11 @@ struct _Parabola {
 		float x2 = (-B - sqrt(B*B - 4*A*C))/(2*A);
 		float y2 = getVal(x1);
 
-		return _Point2D(0, 0); // return appropriate root
+		vector<_Point2D> roots;
+		roots.push_back(_Point2D(x1, y1));
+		roots.push_back(_Point2D(x2, y2));
+
+		return roots; // return appropriate root
 	}
 
 	void draw() {
@@ -160,7 +168,7 @@ struct _Parabola {
 		glLineWidth(2.0);
 		if(orientation == HORIZONTAL) {
 			glBegin(GL_LINES);
-				for(float x = start; x < end; x += .25) {
+				for(float x = start; x < end; x += .01) {
 					float y = getVal(x);
 
 					float x2 = x + 1;
@@ -169,17 +177,19 @@ struct _Parabola {
 					glVertex3f(x, 5, y);
 					glVertex3f(x2, 5, y2);
 				} // parabola
-				for(int x = -mapwidth/2.0; x < mapwidth/2.0; x++) {
+/*				for(int x = -mapwidth/2.0; x < mapwidth/2.0; x++) {
 					glVertex3f(x, 5, getDirectrix());
 					glVertex3f(x+1, 5, getDirectrix());
 				} // draws directrix
+*/
 			glEnd();
 
-			glTranslatef(getFocus().x, 5, getFocus().z);
+/*			glTranslatef(getFocus().x, 5, getFocus().z);
 			GLUquadricObj* f = gluNewQuadric();
 			gluSphere(f, .25, 5, 5);
 			gluDeleteQuadric(f);			
 			glTranslatef(-getFocus().x, -5, -getFocus().z);
+*/
 			// draws focus
 		} 
 		else {
@@ -193,18 +203,20 @@ struct _Parabola {
 					glVertex3f(y, 5, x);
 					glVertex3f(y2, 5, x2);
 				} // draws parabola
-				for(int x = -mapheight/2.0; x < mapheight/2.0; x++) {
+/*				for(int x = -mapheight/2.0; x < mapheight/2.0; x++) {
 					glVertex3f(getDirectrix(), 5, x);
 					glVertex3f(getDirectrix(), 5, x+1);
 				} // draws directrix
+*/
 			glEnd();
 	
-			glTranslatef(getFocus().x, 5, getFocus().z);
+/*			glTranslatef(getFocus().x, 5, getFocus().z);
 			GLUquadricObj* f = gluNewQuadric();
 			gluSphere(f, .25, 5, 5);
 			gluDeleteQuadric(f);			
 			glTranslatef(-getFocus().x, -5, -getFocus().z);
 			// draws focus
+*/
 		}
 	}
 };
