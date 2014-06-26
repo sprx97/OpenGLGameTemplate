@@ -1251,7 +1251,7 @@ int main(int argc, char* argv[]) {
 	// create objects
 	
 	topdowncam = new CSE40166::Camera(CSE40166::OTHER);
-	topdowncam->setEye(new CSE40166::Point(.1, 75.0, 0.0));
+	topdowncam->setEye(new CSE40166::Point(.1, 100.0, 0.0));
 	topdowncam->setLookAt(new CSE40166::Point(0, 0, 0));
 	topdowncam->setUp(new CSE40166::Vector(0, 1, 0));
 	topdowncam->look();

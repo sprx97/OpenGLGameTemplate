@@ -4,6 +4,7 @@
 	#include <GL/glut.h>
 #endif
 
+#include <iostream>
 #include <math.h>
 #include <vector>
 #include <deque>
@@ -20,6 +21,10 @@ struct _Point2D {
 	_Point2D(float x, float z) {
 		this->x = x;
 		this->z = z;
+	}
+
+	bool equals(_Point2D other) {
+		return ((this->x == other.x) && (this->z == other.z));
 	}
 };
 
@@ -43,26 +48,50 @@ struct _Parabola {
 		}
 	}
 
-	_Parabola(_Point2D focus, _Point2D vertex) {
-		float h = vertex.x;
-		float k = vertex.z;
+	void construct(_Point2D focus, _Point2D vertex) {
+		float k = vertex.x;
+		float h = vertex.z;
 
 		float p = focus.x - vertex.x;
 		orientation = VERTICAL;
 		if(p == 0) {
 			p = focus.z - vertex.z;
 			orientation = HORIZONTAL;
+			float temp = h;
+			h = k;
+			k = temp;
 		}
 		a = 1/(4*p);
 		b = -2*a*h;
 		c = a*h*h + k;
+//		cout << a << " " << b << " " << c << endl;		
 	}
 
-	_Parabola(_Point2D focus, float directrix, Orientation o) {
-		if(o == VERTICAL) _Parabola(focus, _Point2D(focus.x-directrix, focus.z));
-		else _Parabola(focus, _Point2D(focus.x, focus.z-directrix));
+	_Parabola(_Point2D focus, _Point2D vertex) {
+		construct(focus, vertex);
 	}
-	
+
+	_Parabola(_Point2D focus, float directrix, Orientation o = VERTICAL) {
+		orientation = o;
+		if(o == VERTICAL) {
+			construct(focus, _Point2D((focus.x+directrix)/2.0, focus.z));
+			start = -mapwidth/2.0;
+			end = mapwidth/2.0;
+		}
+		else {
+			construct(focus, _Point2D(focus.x, (focus.z+directrix)/2.0));
+			start = -mapheight/2.0;
+			end = mapheight/2.0;
+		}
+	}
+
+	void recalculate(_Point2D focus, float directrix) {
+		if(orientation == VERTICAL) 
+			construct(focus, _Point2D((focus.x+directrix)/2.0, focus.z));
+		else
+			construct(focus, _Point2D(focus.x, (focus.z+directrix)/2.0));
+	}
+
 	_Point2D getVertex() {
 		if(orientation == HORIZONTAL) {
 			float h = -b/(2*a);
@@ -110,12 +139,28 @@ struct _Parabola {
 		return (a*x*x + b*x + c);
 	}
 
+	_Point2D getIntersection(_Parabola other) {
+		float A = this->a - other.a;
+		float B = this->b - other.b;
+		float C = this->c - other.c;
+
+		float x1 = (-B + sqrt(B*B - 4*A*C))/(2*A);
+		float y1 = getVal(x1);
+
+		float x2 = (-B - sqrt(B*B - 4*A*C))/(2*A);
+		float y2 = getVal(x1);
+
+		return _Point2D(0, 0); // return appropriate root
+	}
+
 	void draw() {
+//		cout << a << " " << b << " " << c << endl;
+
 		glColor4f(0.0, 0.0, 1.0, 1.0);
 		glLineWidth(2.0);
 		if(orientation == HORIZONTAL) {
 			glBegin(GL_LINES);
-				for(int x = start; x < end; x++) {
+				for(float x = start; x < end; x += .25) {
 					float y = getVal(x);
 
 					float x2 = x + 1;

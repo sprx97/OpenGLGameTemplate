@@ -28,7 +28,19 @@ Voronoi::Voronoi(int numpoints) {
 void Voronoi::step() {
 	if(events.size() == 0) return;
 	sweepline = events[0].x;
+	_Point2D next = events[0];
 	events.pop_front();
+	// moves sweepline and gets next event
+
+	for(int n = 0; n < beachline.size(); n++) {
+		beachline[n].recalculate(beachline[n].getFocus(), sweepline);
+//		cout << beachline[n].a << " " << beachline[n].b << " " << beachline[n].c << endl;
+	} // resizes all current parabolae
+	cout << endl;
+
+//	beachline.push_back(_Parabola(_Point2D(13.315, .833), -3.35));
+	float offset = .001;
+	beachline.push_back(_Parabola(_Point2D(next.x - offset, next.z), sweepline+offset));
 }
 
 void Voronoi::draw() {
@@ -51,12 +63,10 @@ void Voronoi::draw() {
 		}
 	glEnd();
 
-//	_Parabola test(.03, -.05, 5, VERTICAL);
-//	cout << test.getVertex().x << " " << test.getVertex().z << endl;
-//	cout << test.getFocus().x << " " << test.getFocus().z << endl;
-//	cout << test.getDirectrix() << endl;
-//	test.draw();
-
+	for(int n = 0; n < beachline.size(); n++) {
+		if(n == beachline.size()-1) continue;
+		beachline[n].draw();
+	}
 	glEnable(GL_COLOR_MATERIAL);
 
 }
