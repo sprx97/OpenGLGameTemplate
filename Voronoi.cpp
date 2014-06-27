@@ -32,7 +32,7 @@ void Voronoi::step() {
 	events.pop_front();
 	// moves sweepline and gets next event
 
-	float offset = .001;
+	float offset = .01;
 	if(beachline.size() == 0) {
 		beachline.push_back(_Parabola(_Point2D(next.x - offset, next.z), sweepline+offset));
 	}
@@ -52,9 +52,27 @@ void Voronoi::step() {
 
 		for(int n = 1; n < beachline.size(); n++) {
 			vector<_Point2D> roots = beachline[n].getIntersection(beachline[n-1]);
-			cout << n << ": (" << roots[0].x << ", " << roots[0].z << ") (" << roots[1].x << ", " << roots[1].z << ")" << endl;
-		} // intersection to the left
-		cout << endl;
+			if(beachline[n-1].getSlope(roots[0].z) < beachline[n].getSlope(roots[0].z)) {
+//				cout << n << ":\t(" << roots[0].x << ", " << roots[0].z << ")" << endl;
+//				cout << "\t" << beachline[n-1].getSlope(roots[0].x) << " " << beachline[n].getSlope(roots[0].x) << endl;
+
+				beachline[n-1].end = roots[0].z;
+				beachline[n].start = roots[0].z;
+			}			
+			if(beachline[n-1].getSlope(roots[1].z) < beachline[n].getSlope(roots[1].z)) {
+//				cout << "\t(" << roots[1].x << ", " << roots[1].z << ")" << endl;
+//				cout << "\t" << beachline[n-1].getSlope(roots[1].x) << " " << beachline[n].getSlope(roots[1].x) << endl;
+
+				beachline[n-1].end = roots[1].z;
+				beachline[n].start = roots[1].z;
+			}
+		}
+
+
+
+
+
+//		cout << endl;
 
 //			cout << beachline[beachline.size()-1].getSlope(roots[0].x) << " " << beachline[beachline.size()-2].getSlope(roots[0].x) << endl;
 
@@ -85,7 +103,16 @@ void Voronoi::draw() {
 
 	for(int n = 0; n < beachline.size(); n++) {
 		beachline[n].draw();
-	}
+	} // parabolas
+
+	for(int n = 1; n < beachline.size(); n++) {
+		vector<_Point2D> roots = beachline[n].getIntersection(beachline[n-1]);
+		glColor4f(0.0, 1.0, 1.0, 1.0);
+		roots[0].draw();
+		glColor4f(1.0, 1.0, 0.0, 1.0);
+		roots[1].draw();		
+	} // intersections
+
 	glEnable(GL_COLOR_MATERIAL);
 
 }

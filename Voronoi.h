@@ -26,6 +26,18 @@ struct _Point2D {
 	bool equals(_Point2D other) {
 		return ((this->x == other.x) && (this->z == other.z));
 	}
+
+	void draw() {
+		glDisable(GL_COLOR_MATERIAL);
+		glBegin(GL_LINES);
+			glVertex3f(x-.25, 5, z-.25);
+			glVertex3f(x+.25, 5, z+.25);
+
+			glVertex3f(x-.25, 5, z+.25);
+			glVertex3f(x+.25, 5, z-.25);
+		glEnd();
+		glEnable(GL_COLOR_MATERIAL);
+	}
 };
 
 struct _Parabola {
@@ -144,19 +156,19 @@ struct _Parabola {
 	}
 
 	vector<_Point2D> getIntersection(_Parabola other) {
-		float A = this->a - other.a;
-		float B = this->b - other.b;
-		float C = this->c - other.c;
+		float A = other.a - this->a;
+		float B = other.b - this->b;
+		float C = other.c - this->c;
 
 		float x1 = (-B + sqrt(B*B - 4*A*C))/(2*A);
 		float y1 = getVal(x1);
 
 		float x2 = (-B - sqrt(B*B - 4*A*C))/(2*A);
-		float y2 = getVal(x1);
+		float y2 = getVal(x2);
 
 		vector<_Point2D> roots;
-		roots.push_back(_Point2D(x1, y1));
-		roots.push_back(_Point2D(x2, y2));
+		roots.push_back(_Point2D(y1, x1));
+		roots.push_back(_Point2D(y2, x2));
 
 		return roots; // return appropriate root
 	}
@@ -171,7 +183,7 @@ struct _Parabola {
 				for(float x = start; x < end; x += .01) {
 					float y = getVal(x);
 
-					float x2 = x + 1;
+					float x2 = x + .01;
 					float y2 = getVal(x2);
 
 					glVertex3f(x, 5, y);
@@ -194,10 +206,10 @@ struct _Parabola {
 		} 
 		else {
 			glBegin(GL_LINES);
-				for(int x = start; x < end; x++) {
+				for(float x = start; x < end; x += .01) {
 					float y = getVal(x);
 
-					float x2 = x+1;
+					float x2 = x + .01;
 					float y2 = getVal(x2);
 
 					glVertex3f(y, 5, x);
