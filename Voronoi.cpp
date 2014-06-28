@@ -25,6 +25,24 @@ Voronoi::Voronoi(int numpoints) {
 	sweepline = -mapwidth/2.0;
 }
 
+_Point2D Voronoi::circumcenter(_Point2D p1, _Point2D p2, _Point2D p3) {
+	_Point2D point1((p1.x+p2.x)/2.0, (p1.z+p2.z)/2.0);
+	_Point2D point2((p1.x+p3.x)/2.0, (p1.z+p3.z)/2.0);
+	float slope1 = -1/((p2.z-p1.z)/(p2.x-p1.x));
+	float slope2 = -1/((p3.z-p1.z)/(p3.x-p1.x));
+	// point-slope form of two lines - their intersection is the circumcenter
+
+	float m1 = slope1;
+	float m2 = slope2;
+	float b1 = point1.z - m1*point1.x;
+	float b2 = point2.z - m2*point2.x;
+	// standard form
+
+	float x = -(b2-b1)/(m2-m1);
+	float y = -(m1*b2 - b1*m2)/(m2-m1);
+	return _Point2D(x, y);
+}
+
 void Voronoi::step() {
 	if(events.size() == 0) return;
 	sweepline = events[0].x;
@@ -32,41 +50,44 @@ void Voronoi::step() {
 	events.pop_front();
 	// moves sweepline and gets next event
 
-	float offset = .0001;
-	if(beachline.size() == 0) {
-		beachline.push_back(_Parabola(_Point2D(next.x - offset, next.z), sweepline+offset));
-	}
+	float offset = 0.00001;
+	_Parabola newarc(_Point2D(next.x - offset, next.z), sweepline+offset);
+
+
+
+	// manually create "parabola" that is vertical but has focus and vertex in same place
+	// don't use offset - it screws stuff up
+	// All Parabola methods have to be able to handle this
+
+
+
+	if(beachline.size() == 0) beachline.push_back(newarc);
 	else {
-		int pushed = -1;
 		for(int n = 0; n < beachline.size(); n++) {
 			beachline[n].recalculate(beachline[n].getFocus(), sweepline);
-			if(pushed == -1 && next.z < beachline[n].getFocus().z) {
-				beachline.insert(beachline.begin()+n, _Parabola(_Point2D(next.x - offset, next.z), sweepline+offset));
-				pushed = n;
-			}
 		} // resizes all current parabolae
-		if(pushed == -1) {
-			beachline.push_back(_Parabola(_Point2D(next.x - offset, next.z), sweepline+offset));
-			pushed = beachline.size()-1;
-		} // puts at the end
+		// set start/end to the new intersection points
 
-		for(int n = 1; n < beachline.size(); n++) {
-			vector<_Point2D> roots = beachline[n].getIntersection(beachline[n-1]);
-			if(beachline[n-1].getSlope(roots[0].z) < beachline[n].getSlope(roots[0].z)) {
-//				cout << n << ":\t(" << roots[0].x << ", " << roots[0].z << ")" << endl;
-//				cout << "\t" << beachline[n-1].getSlope(roots[0].x) << " " << beachline[n].getSlope(roots[0].x) << endl;
+		for(int n = 0; n < beachline.size(); n++) {
+			_Parabola oldarc = beachline[n];
+			if(next.z > oldarc.start && next.z < oldarc.end) {
+//				cout << "Found arc: " << n << ", " << next.z << endl;
 
-				beachline[n-1].end = roots[0].z;
-				beachline[n].start = roots[0].z;
-			}			
-			if(beachline[n-1].getSlope(roots[1].z) < beachline[n].getSlope(roots[1].z)) {
-//				cout << "\t(" << roots[1].x << ", " << roots[1].z << ")" << endl;
-//				cout << "\t" << beachline[n-1].getSlope(roots[1].x) << " " << beachline[n].getSlope(roots[1].x) << endl;
+				vector<_Point2D> roots = beachline[n].getIntersection(newarc);
 
-				beachline[n-1].end = roots[1].z;
-				beachline[n].start = roots[1].z;
+				beachline.insert(beachline.begin()+n, oldarc);
+				beachline[n].end = roots[0].z;
+				beachline[n+1].start = roots[1].z;
+				// splits old arc
+
+				beachline.insert(beachline.begin()+n+1, newarc);
+				newarc.start = roots[0].z;
+				newarc.end = roots[1].z;
+				// inserts new arc
+
+				break;
 			}
-		}
+		} // inserts new parabola in appropriate place
 	} // creates beachline in order of x position
 }
 
@@ -95,14 +116,13 @@ void Voronoi::draw() {
 		beachline[n].draw();
 	} // parabolas
 
-/*	for(int n = 1; n < beachline.size(); n++) {
+	glColor4f(0.0, 1.0, 1.0, 1.0);
+	for(int n = 1; n < beachline.size(); n++) {
 		vector<_Point2D> roots = beachline[n].getIntersection(beachline[n-1]);
-		glColor4f(0.0, 1.0, 1.0, 1.0);
 		roots[0].draw();
-		glColor4f(1.0, 1.0, 0.0, 1.0);
 		roots[1].draw();		
 	} // intersections
-*/
+
 	glEnable(GL_COLOR_MATERIAL);
 
 }

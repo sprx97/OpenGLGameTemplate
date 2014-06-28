@@ -18,6 +18,12 @@ enum Orientation {
 
 struct _Point2D {
 	float x, z;
+	
+	_Point2D() {
+		x = 0.0;
+		z = 0.0;
+	}
+
 	_Point2D(float x, float z) {
 		this->x = x;
 		this->z = z;
@@ -44,6 +50,8 @@ struct _Parabola {
 	float a, b, c;
 	float start, end;
 	Orientation orientation;
+	_Point2D vertex, focus;
+	float directrix;
 
 	_Parabola(float a, float b, float c, Orientation o) {
 		this->a = a;
@@ -58,6 +66,10 @@ struct _Parabola {
 			start = -mapheight/2.0;
 			end = mapheight/2.0;
 		}
+
+		vertex = getVertex();
+		focus = getFocus();
+		directrix = getDirectrix();
 	}
 
 	void construct(_Point2D focus, _Point2D vertex) {
@@ -76,6 +88,10 @@ struct _Parabola {
 		a = 1/(4*p);
 		b = -2*a*h;
 		c = a*h*h + k;
+
+		this->focus = focus;
+		this->vertex = vertex;
+		directrix = focus.x;
 //		cout << a << " " << b << " " << c << endl;		
 	}
 
@@ -105,34 +121,40 @@ struct _Parabola {
 	}
 
 	_Point2D getVertex() {
-		if(orientation == HORIZONTAL) {
-			float h = -b/(2*a);
-			float k = a*h*h + b*h + c;
-			return _Point2D(h, k);
-		}
-		else {
-			float k = -b/(2*a);
-			float h = a*k*k + b*k + c;
-			return _Point2D(h, k);
-		}
+		return vertex;
+
+//		if(orientation == HORIZONTAL) {
+//			float h = -b/(2*a);
+//			float k = a*h*h + b*h + c;
+//			return _Point2D(h, k);
+//		}
+//		else {
+//			float k = -b/(2*a);
+//			float h = a*k*k + b*k + c;
+//			return _Point2D(h, k);
+//		}
 	}
 
 	_Point2D getFocus() {
-		if(orientation == HORIZONTAL) {
-			float h = -b/(2*a);
-			float k = (a*h*h + b*h + c);
-			float p = (1/(4*a));
-			return _Point2D(h, k+p);
-		}
-		else {
-			float k = -b/(2*a);
-			float h = (a*k*k + b*k + c);
-			float p = (1/(4*a));
-			return _Point2D(h+p, k);
-		}
+		return focus;
+
+//		if(orientation == HORIZONTAL) {
+//			float h = -b/(2*a);
+//			float k = (a*h*h + b*h + c);
+//			float p = (1/(4*a));
+//			return _Point2D(h, k+p);
+//		}
+//		else {
+//			float k = -b/(2*a);
+//			float h = (a*k*k + b*k + c);
+//			float p = (1/(4*a));
+//			return _Point2D(h+p, k);
+//		}
 	}
 
 	float getDirectrix() {
+		if(focus.equals(vertex)) return focus.x;
+
 		if(orientation == HORIZONTAL) {
 			float h = -b/(2*a);
 			float k = (a*h*h + b*h + c);
@@ -169,6 +191,12 @@ struct _Parabola {
 		vector<_Point2D> roots;
 		roots.push_back(_Point2D(y1, x1));
 		roots.push_back(_Point2D(y2, x2));
+
+		if(roots[0].z > roots[1].z) {
+			_Point2D temp = roots[0];
+			roots[0] = roots[1];
+			roots[1] = temp;
+		} // orders roots from left to right
 
 		return roots; // return appropriate root
 	}
@@ -242,6 +270,7 @@ class Voronoi {
 		Voronoi(int numpoints);
 		void draw();
 		void step();
+		_Point2D circumcenter(_Point2D p1, _Point2D p2, _Point2D p3);
 	private:
 		deque<_Point2D> events;
 		vector<_Point2D> sites;
