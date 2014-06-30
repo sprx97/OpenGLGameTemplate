@@ -328,20 +328,20 @@ struct VoronoiArc : public _Parabola {
 		for(int n = 0; n < children.size(); n++) children[n]->recalculate(children[n]->getFocus(), sweepline);
 	}
 
-/*	void add(VoronoiArc child) {		
+	void add(VoronoiArc* child) {		
 		int highest = -1; // default if this node is the highest collision
-		float intersect = getIntersection(child)[0].x;
+		float intersect = getIntersection(*child)[0].x;
 
 		for(int n = 0; n < children.size(); n++) {
-			if(children[n].getIntersection(child)[0].x > intersect) {
-				intersect = children[n].getIntersection(child)[0].x;
+			if(children[n]->getIntersection(*child)[0].x > intersect) {
+				intersect = children[n]->getIntersection(*child)[0].x;
 				highest = n;
 			}
 		}
 
 		if(highest == -1) children.push_back(child);
-		else children[highest].add(child);
-	}*/
+		else children[highest]->add(child);
+	}
 };
 
 struct _Edge {
@@ -358,6 +358,6 @@ class Voronoi {
 		deque<_Point2D> events;
 		vector<_Point2D> sites;
 		vector<_Edge> edges;
-		vector<VoronoiArc*> beachline; // root
+		VoronoiArc* beachline; // root
 		float sweepline;
 };

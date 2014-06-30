@@ -13,6 +13,7 @@ using namespace std;
 
 bool sortPoints(_Point2D p1, _Point2D p2) { return p1.x < p2.x; }
 Voronoi::Voronoi(int numpoints) {
+	beachline = NULL;
 	for(int n = 0; n < numpoints; n++) {
 		_Point2D pt(((float)rand()/RAND_MAX) * mapwidth - (mapwidth/2.0), ((float)rand()/RAND_MAX) * mapheight - (mapheight/2.0));
 		sites.push_back(pt);
@@ -50,54 +51,12 @@ void Voronoi::step() {
 	events.pop_front();
 	// moves sweepline and gets next event
 
-	for(int n = 0; n < beachline.size(); n++) beachline[n]->recalculate(beachline[n]->getFocus(), sweepline);
 	VoronoiArc* newarc = new VoronoiArc(_Point2D(next.x, next.z), sweepline);
-	beachline.push_back(newarc);
-
-/*
-	if(beachline.size() == 0) beachline.push_back(newarc);
+	if(beachline == NULL) beachline = newarc;
 	else {
-		for(int n = 0; n < beachline.size(); n++) {
-			beachline[n].recalculate(beachline[n].getFocus(), sweepline);
-		} // resizes all current parabolae
-
-		for(int n = 0; n < beachline.size(); n++) {
-			VoronoiArc oldarc = beachline[n];
-			if(next.z > oldarc.start && next.z < oldarc.end) {
-				vector<_Point2D> roots = beachline[n].getIntersection(newarc);
-//				cout << "Found arc: " << n << ", " << roots[0].x << " " << roots[1].x << endl;
-
-				beachline.insert(beachline.begin()+n, newarc);
-				beachline[n+1].start = roots[0].x;
-				beachline[n].end = roots[1].x;
-				// inserts new arc
-
-				beachline.insert(beachline.begin()+n, oldarc);
-				beachline[n].end = roots[0].x;
-				beachline[n+1].start = roots[1].x;
-				// splits old arc
-
-				cout << beachline[n].start << endl;
-				cout << beachline[n].vertex.x << " " << beachline[n].vertex.z << endl;
-				cout << beachline[n].end << endl << endl;
-				cout << beachline[n+1].start << endl;
-				cout << beachline[n+1].vertex.x << " " << beachline[n+1].vertex.z << endl;
-				cout << beachline[n+1].end << endl << endl;
-				cout << beachline[n+2].start << endl;
-				cout << beachline[n+2].vertex.x << " " << beachline[n+2].vertex.z << endl;
-				cout << beachline[n+2].end << endl;
-
-				break;
-			}
-		} // inserts new parabola in appropriate place
-	} // creates beachline in order of x position
-*/
-
-//	for(int n = 0; n < beachline.size(); n++) {
-//		cout << beachline[n].start << endl;
-//		cout << beachline[n].vertex.x << " " << beachline[n].vertex.z << endl;
-//		cout << beachline[n].end << endl << endl;		
-//	}
+		beachline->recalculate(beachline->getFocus(), sweepline);
+		beachline->add(newarc);
+	}
 }
 
 void Voronoi::draw() {
@@ -121,9 +80,7 @@ void Voronoi::draw() {
 	glEnd();
 	// sweepline
 
-	for(int n = 0; n < beachline.size(); n++) {
-		beachline[n]->draw();
-	} // parabolas
+	if(beachline != NULL) beachline->draw();
 
 //	glColor4f(0.0, 1.0, 1.0, 1.0);
 //	for(int n = 1; n < beachline.size(); n++) {
