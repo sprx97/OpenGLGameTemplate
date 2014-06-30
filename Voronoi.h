@@ -215,10 +215,10 @@ struct _Parabola {
 		float y2 = getVal(x2);
 
 		vector<_Point2D> roots;
-		roots.push_back(_Point2D(y1, x1));
-		roots.push_back(_Point2D(y2, x2));
+		roots.push_back(_Point2D(x1, y1));
+		roots.push_back(_Point2D(x2, y2));
 
-		if(roots[0].z > roots[1].z) {
+		if(roots[0].x > roots[1].x) {
 			_Point2D temp = roots[0];
 			roots[0] = roots[1];
 			roots[1] = temp;
@@ -239,12 +239,14 @@ struct _Parabola {
 		if(focus.equals(vertex)) {
 			glBegin(GL_LINES);
 			if(orientation == VERTICAL) {
+//				float connect = parent->getVal(vertex.z);
 				for(float x = vertex.x-25; x < vertex.x; x += .01) {
 					glVertex3f(x, 5, vertex.z);
 					glVertex3f(x+.01, 5, vertex.z);
 				}
 			}
 			else {
+//				float connect = parent->getVal(vertex.x);
 				for(float z = vertex.z-25; z < vertex.z; z += .01) {
 					glVertex3f(vertex.x, 5, z);
 					glVertex3f(vertex.x, 5, z+.01);
@@ -265,20 +267,7 @@ struct _Parabola {
 					glVertex3f(x, 5, y);
 					glVertex3f(x2, 5, y2);
 				} // parabola
-/*				for(int x = -mapwidth/2.0; x < mapwidth/2.0; x++) {
-					glVertex3f(x, 5, getDirectrix());
-					glVertex3f(x+1, 5, getDirectrix());
-				} // draws directrix
-*/
 			glEnd();
-
-/*			glTranslatef(getFocus().x, 5, getFocus().z);
-			GLUquadricObj* f = gluNewQuadric();
-			gluSphere(f, .25, 5, 5);
-			gluDeleteQuadric(f);			
-			glTranslatef(-getFocus().x, -5, -getFocus().z);
-*/
-			// draws focus
 		} 
 		else {
 			glBegin(GL_LINES);
@@ -291,26 +280,14 @@ struct _Parabola {
 					glVertex3f(y, 5, x);
 					glVertex3f(y2, 5, x2);
 				} // draws parabola
-/*				for(int x = -mapheight/2.0; x < mapheight/2.0; x++) {
-					glVertex3f(getDirectrix(), 5, x);
-					glVertex3f(getDirectrix(), 5, x+1);
-				} // draws directrix
-*/
 			glEnd();
-	
-/*			glTranslatef(getFocus().x, 5, getFocus().z);
-			GLUquadricObj* f = gluNewQuadric();
-			gluSphere(f, .25, 5, 5);
-			gluDeleteQuadric(f);			
-			glTranslatef(-getFocus().x, -5, -getFocus().z);
-			// draws focus
-*/
 		}
 	}
 };
 
 struct VoronoiArc : public _Parabola {
 	vector<VoronoiArc*> children;
+	VoronoiArc* parent;
 
 	VoronoiArc(float a, float b, float c, Orientation o) : _Parabola(a, b, c, o) {}
 	VoronoiArc(_Point2D focus, _Point2D vertex) : _Parabola(focus, vertex) {}
@@ -318,19 +295,28 @@ struct VoronoiArc : public _Parabola {
 	// same constructors as a parabola
 
 	void draw(float s, float e) {
-/*		start = s;
+		start = end = s;
 		for(int n = 0; n < children.size(); n++) {
-			end = getIntersection(*(children[n]))[0].x;
-			cout << start << "\t" << end << endl;
+			vector<_Point2D> roots = getIntersection(*(children[n]));
+
+//			cout << roots[0].x << "\t" << roots[0].z << endl;
+//			cout << roots[1].x << "\t" << roots[1].z << endl;
+//			cout << endl;
+
+			if(roots[0].x > end) end = roots[0].x; // stop where new parabola is
 			_Parabola::draw();
-			start = getIntersection(*(children[n]))[1].x;
+			start = roots[1].x; // restart where new one reconnects
+			if(start > e) start = e;
+			children[n]->draw(end, start);
+
+			// roots[0] will always start the parabola and roots[1]
+			// will always end it. Because the children are "tighter"
 		}
 		end = e;
-		cout << start << "\t" << end << endl << endl;
-		_Parabola::draw();*/
+		_Parabola::draw(); // draw last segment
 
-		_Parabola::draw();
-		for(int n = 0; n < children.size(); n++) children[n]->draw(s, e);
+//		_Parabola::draw();
+//		for(int n = 0; n < children.size(); n++) children[n]->draw(s, e);
 		// draw self only in places not covered by children
 	}
 
@@ -351,17 +337,24 @@ struct VoronoiArc : public _Parabola {
 		}
 
 		if(highest == -1) {
-			if(children.size() == 0) children.push_back(child);
+			if(children.size() == 0) {
+				children.push_back(child);
+				child->parent = this;
+			}
 			else {
 				bool broken = false;
 				for(int n = 0; n < children.size(); n++) {
 					if(child->getVertex().z < children[n]->getVertex().z) {
 						children.insert(children.begin()+n, child);
+						child->parent = this;
 						broken = true;
 						break;
 					}
 				}
-				if(!broken) children.push_back(child);
+				if(!broken) {
+					children.push_back(child);
+					child->parent = this;
+				}
 			}
 		}
 		else children[highest]->add(child);
