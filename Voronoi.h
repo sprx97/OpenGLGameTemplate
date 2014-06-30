@@ -73,6 +73,13 @@ struct _Parabola {
 	}
 
 	void construct(_Point2D focus, _Point2D vertex) {
+		if(focus.equals(vertex)) {
+			this->focus = focus;
+			this->vertex = vertex;
+			directrix = focus.x;	
+			return;		
+		}
+
 		float k = vertex.x;
 		float h = vertex.z;
 
@@ -89,9 +96,9 @@ struct _Parabola {
 		b = -2*a*h;
 		c = a*h*h + k;
 
-		this->focus = focus;
 		this->vertex = vertex;
-		directrix = focus.x;
+		this->focus = focus;
+		this->directrix = getDirectrix();
 //		cout << a << " " << b << " " << c << endl;		
 	}
 
@@ -114,7 +121,7 @@ struct _Parabola {
 	}
 
 	void recalculate(_Point2D focus, float directrix) {
-		if(orientation == VERTICAL) 
+		if(orientation == VERTICAL)
 			construct(focus, _Point2D((focus.x+directrix)/2.0, focus.z));
 		else
 			construct(focus, _Point2D(focus.x, (focus.z+directrix)/2.0));
@@ -170,14 +177,33 @@ struct _Parabola {
 	}
 
 	float getVal(float x) {
+		if(vertex.equals(focus)) return directrix;
 		return (a*x*x + b*x + c);
 	}
 
 	float getSlope(float x) {
+		if(vertex.equals(focus)) return 999999;
 		return (2*a*x + b);
 	}
 
 	vector<_Point2D> getIntersection(_Parabola other) {
+		vector<_Point2D> infroots;
+		if(vertex.equals(focus)) {
+//			cout << focus.z << " " << other.getVal(focus.z) << endl;
+			infroots.push_back(_Point2D(focus.z, other.getVal(focus.z)));
+			infroots.push_back(_Point2D(focus.z, other.getVal(focus.z)));
+		}
+		if(other.vertex.equals(other.focus)) {
+//			cout << other.focus.z << " " << getVal(other.focus.z) << endl;
+			infroots.push_back(_Point2D(other.focus.z, getVal(other.focus.z)));
+			infroots.push_back(_Point2D(other.focus.z, getVal(other.focus.z)));
+		}
+		if(infroots.size() > 2) {
+			cout << "Trying to find the intersection of two infinite parabolas" << endl;
+			exit(0);
+		}
+		else if (infroots.size() != 0) return infroots;
+
 		float A = other.a - this->a;
 		float B = other.b - this->b;
 		float C = other.c - this->c;
@@ -202,10 +228,32 @@ struct _Parabola {
 	}
 
 	void draw() {
-//		cout << a << " " << b << " " << c << endl;
-
+/*		cout << a << " " << b << " " << c << endl;
+		cout << focus.x << " " << focus.z << endl;
+		cout << vertex.x << " " << vertex.z << endl;
+		cout << directrix << endl;
+		cout << focus.equals(vertex) << endl << endl;
+*/
 		glColor4f(0.0, 0.0, 1.0, 1.0);
 		glLineWidth(2.0);
+		if(focus.equals(vertex)) {
+			glBegin(GL_LINES);
+			if(orientation == VERTICAL) {
+				for(float x = vertex.x-25; x < vertex.x; x += .01) {
+					glVertex3f(x, 5, vertex.z);
+					glVertex3f(x+.01, 5, vertex.z);
+				}
+			}
+			else {
+				for(float z = vertex.z-25; z < vertex.z; z += .01) {
+					glVertex3f(vertex.x, 5, z);
+					glVertex3f(vertex.x, 5, z+.01);
+				}
+			}
+			glEnd();
+			return;	
+		} // straight line placeholder if infinite parabola
+
 		if(orientation == HORIZONTAL) {
 			glBegin(GL_LINES);
 				for(float x = start; x < end; x += .01) {
@@ -261,6 +309,41 @@ struct _Parabola {
 	}
 };
 
+struct VoronoiArc : public _Parabola {
+	vector<VoronoiArc*> children;
+
+	VoronoiArc(float a, float b, float c, Orientation o) : _Parabola(a, b, c, o) {}
+	VoronoiArc(_Point2D focus, _Point2D vertex) : _Parabola(focus, vertex) {}
+	VoronoiArc(_Point2D focus, float directrix, Orientation o = VERTICAL) : _Parabola(focus, directrix, o) {}
+	// same constructors as a parabola
+
+	void draw() {
+		_Parabola::draw();
+		for(int n = 0; n < children.size(); n++) children[n]->draw();
+		// draw self only in places not covered by children
+	}
+
+	void recalculate(_Point2D focus, float sweepline) {
+		_Parabola::recalculate(focus, sweepline);
+		for(int n = 0; n < children.size(); n++) children[n]->recalculate(children[n]->getFocus(), sweepline);
+	}
+
+/*	void add(VoronoiArc child) {		
+		int highest = -1; // default if this node is the highest collision
+		float intersect = getIntersection(child)[0].x;
+
+		for(int n = 0; n < children.size(); n++) {
+			if(children[n].getIntersection(child)[0].x > intersect) {
+				intersect = children[n].getIntersection(child)[0].x;
+				highest = n;
+			}
+		}
+
+		if(highest == -1) children.push_back(child);
+		else children[highest].add(child);
+	}*/
+};
+
 struct _Edge {
 	_Point2D start, end;
 };
@@ -275,6 +358,6 @@ class Voronoi {
 		deque<_Point2D> events;
 		vector<_Point2D> sites;
 		vector<_Edge> edges;
-		vector<_Parabola> beachline;
+		vector<VoronoiArc*> beachline; // root
 		float sweepline;
 };
