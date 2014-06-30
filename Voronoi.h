@@ -317,13 +317,20 @@ struct VoronoiArc : public _Parabola {
 	VoronoiArc(_Point2D focus, float directrix, Orientation o = VERTICAL) : _Parabola(focus, directrix, o) {}
 	// same constructors as a parabola
 
-	void draw() {
-//		for(int n = 0; n < children.size(); n++) {
-//			end = getIntersection(*(children[n]))[0].x;
+	void draw(float s, float e) {
+/*		start = s;
+		for(int n = 0; n < children.size(); n++) {
+			end = getIntersection(*(children[n]))[0].x;
+			cout << start << "\t" << end << endl;
 			_Parabola::draw();
-//			start = getIntersection(*(children[n]))[1].x;
-//		}
-		for(int n = 0; n < children.size(); n++) children[n]->draw();
+			start = getIntersection(*(children[n]))[1].x;
+		}
+		end = e;
+		cout << start << "\t" << end << endl << endl;
+		_Parabola::draw();*/
+
+		_Parabola::draw();
+		for(int n = 0; n < children.size(); n++) children[n]->draw(s, e);
 		// draw self only in places not covered by children
 	}
 
@@ -334,22 +341,27 @@ struct VoronoiArc : public _Parabola {
 
 	void add(VoronoiArc* child) {		
 		int highest = -1; // default if this node is the highest collision
-		float intersect = getIntersection(*child)[0].x;
+		float intersect = getIntersection(*child)[0].z;
 
 		for(int n = 0; n < children.size(); n++) {
-			if(children[n]->getIntersection(*child)[0].x > intersect) {
-				intersect = children[n]->getIntersection(*child)[0].x;
+			if(children[n]->getIntersection(*child)[0].z > intersect) {
+				intersect = children[n]->getIntersection(*child)[0].z;
 				highest = n;
 			}
 		}
 
 		if(highest == -1) {
 			if(children.size() == 0) children.push_back(child);
-			for(int n = 0; n < children.size(); n++) {
-				if(child->getVertex().x > children[n]->getVertex().x) {
-					children.insert(children.begin()+n, child);
-					break;
+			else {
+				bool broken = false;
+				for(int n = 0; n < children.size(); n++) {
+					if(child->getVertex().z < children[n]->getVertex().z) {
+						children.insert(children.begin()+n, child);
+						broken = true;
+						break;
+					}
 				}
+				if(!broken) children.push_back(child);
 			}
 		}
 		else children[highest]->add(child);

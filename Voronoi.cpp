@@ -80,7 +80,7 @@ void Voronoi::draw() {
 	glEnd();
 	// sweepline
 
-	if(beachline != NULL) beachline->draw();
+	if(beachline != NULL) beachline->draw(-mapwidth/2.0, mapwidth/2.0);
 
 //	glColor4f(0.0, 1.0, 1.0, 1.0);
 //	for(int n = 1; n < beachline.size(); n++) {
