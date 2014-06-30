@@ -318,7 +318,11 @@ struct VoronoiArc : public _Parabola {
 	// same constructors as a parabola
 
 	void draw() {
-		_Parabola::draw();
+//		for(int n = 0; n < children.size(); n++) {
+//			end = getIntersection(*(children[n]))[0].x;
+			_Parabola::draw();
+//			start = getIntersection(*(children[n]))[1].x;
+//		}
 		for(int n = 0; n < children.size(); n++) children[n]->draw();
 		// draw self only in places not covered by children
 	}
@@ -339,7 +343,15 @@ struct VoronoiArc : public _Parabola {
 			}
 		}
 
-		if(highest == -1) children.push_back(child);
+		if(highest == -1) {
+			if(children.size() == 0) children.push_back(child);
+			for(int n = 0; n < children.size(); n++) {
+				if(child->getVertex().x > children[n]->getVertex().x) {
+					children.insert(children.begin()+n, child);
+					break;
+				}
+			}
+		}
 		else children[highest]->add(child);
 	}
 };
