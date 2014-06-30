@@ -52,6 +52,7 @@ void Voronoi::step() {
 	// moves sweepline and gets next event
 
 	VoronoiArc* newarc = new VoronoiArc(_Point2D(next.x, next.z), sweepline);
+	newarc->parent = NULL;
 	if(beachline == NULL) beachline = newarc;
 	else {
 		beachline->recalculate(beachline->getFocus(), sweepline);

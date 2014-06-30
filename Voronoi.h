@@ -227,7 +227,7 @@ struct _Parabola {
 		return roots; // return appropriate root
 	}
 
-	void draw() {
+	void draw(_Parabola* parent = NULL) {
 /*		cout << a << " " << b << " " << c << endl;
 		cout << focus.x << " " << focus.z << endl;
 		cout << vertex.x << " " << vertex.z << endl;
@@ -239,15 +239,17 @@ struct _Parabola {
 		if(focus.equals(vertex)) {
 			glBegin(GL_LINES);
 			if(orientation == VERTICAL) {
-//				float connect = parent->getVal(vertex.z);
-				for(float x = vertex.x-25; x < vertex.x; x += .01) {
+				float connect = vertex.x-25;
+				if(parent != NULL) connect = parent->getVal(vertex.z);
+				for(float x = connect; x < vertex.x; x += .01) {
 					glVertex3f(x, 5, vertex.z);
 					glVertex3f(x+.01, 5, vertex.z);
 				}
 			}
 			else {
-//				float connect = parent->getVal(vertex.x);
-				for(float z = vertex.z-25; z < vertex.z; z += .01) {
+				float connect = vertex.z-25;
+				if(parent != NULL) connect = parent->getVal(vertex.x);
+				for(float z = connect; z < vertex.z; z += .01) {
 					glVertex3f(vertex.x, 5, z);
 					glVertex3f(vertex.x, 5, z+.01);
 				}
@@ -304,7 +306,7 @@ struct VoronoiArc : public _Parabola {
 //			cout << endl;
 
 			if(roots[0].x > end) end = roots[0].x; // stop where new parabola is
-			_Parabola::draw();
+			_Parabola::draw(parent);
 			start = roots[1].x; // restart where new one reconnects
 			if(start > e) start = e;
 			children[n]->draw(end, start);
@@ -313,7 +315,7 @@ struct VoronoiArc : public _Parabola {
 			// will always end it. Because the children are "tighter"
 		}
 		end = e;
-		_Parabola::draw(); // draw last segment
+		_Parabola::draw(parent);
 
 //		_Parabola::draw();
 //		for(int n = 0; n < children.size(); n++) children[n]->draw(s, e);
