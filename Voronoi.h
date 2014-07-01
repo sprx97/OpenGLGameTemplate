@@ -330,6 +330,12 @@ struct VoronoiArc : public _Parabola {
 		_Parabola::draw();
 	}
 
+	void findNewParent(VoronoiArc* child) {
+		for(int n = 0; n < allarcs.size(); n++) {
+
+		}
+	}
+
 	void recalculate(_Point2D focus, float sweepline) {
 		_Parabola::recalculate(focus, sweepline);
 
@@ -337,6 +343,17 @@ struct VoronoiArc : public _Parabola {
 			VoronoiArc* next = *it;
 			next->recalculate(next->getFocus(), sweepline);
 			// remove if necessary
+		}
+
+		if(children.size() > 1) {
+			for(int n = 1; n < children.size(); n++) {
+				vector<_Point2D> roots = getIntersection(*(children[n-1]));
+				vector<_Point2D> roots2 = getIntersection(*(children[n]));
+				if(roots2[0].x < roots[1].x) {
+					cout << "overlapping: " << roots2[0].x << " " << roots[1].x << endl;
+					// children[n] needs to switch parents
+				}
+			}
 		}
 	}
 
