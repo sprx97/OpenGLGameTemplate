@@ -1,3 +1,6 @@
+#ifndef VORONOI_H
+#define VORONOI_H
+
 #ifdef __APPLE__
 	#include <GLUT/glut.h>
 #else
@@ -45,6 +48,10 @@ struct _Point2D {
 		glEnable(GL_COLOR_MATERIAL);
 	}
 };
+
+struct _Parabola;
+extern vector<_Parabola*> allarcs;
+/* UGLY GLOBAL*/
 
 struct _Parabola {
 	float a, b, c;
@@ -227,7 +234,7 @@ struct _Parabola {
 		return roots; // return appropriate root
 	}
 
-	void draw(_Parabola* parent = NULL) {
+	void draw(int highest = 0) {
 /*		cout << a << " " << b << " " << c << endl;
 		cout << focus.x << " " << focus.z << endl;
 		cout << vertex.x << " " << vertex.z << endl;
@@ -240,7 +247,10 @@ struct _Parabola {
 			glBegin(GL_LINES);
 			if(orientation == VERTICAL) {
 				float connect = vertex.x-25;
-				if(parent != NULL) connect = parent->getVal(vertex.z);
+				for(int n = 0; n < allarcs.size(); n++) {
+					if(allarcs[n] == this) continue;
+					if(allarcs[n]->getVal(vertex.z) > connect) connect = allarcs[n]->getVal(vertex.z);
+				} // finds highest connection
 				for(float x = connect; x < vertex.x; x += .01) {
 					glVertex3f(x, 5, vertex.z);
 					glVertex3f(x+.01, 5, vertex.z);
@@ -248,7 +258,10 @@ struct _Parabola {
 			}
 			else {
 				float connect = vertex.z-25;
-				if(parent != NULL) connect = parent->getVal(vertex.x);
+				for(int n = 0; n < allarcs.size(); n++) {
+					if(allarcs[n] == this) continue;
+					if(allarcs[n]->getVal(vertex.x) > connect) connect = allarcs[n]->getVal(vertex.x);
+				} // finds highest connection
 				for(float z = connect; z < vertex.z; z += .01) {
 					glVertex3f(vertex.x, 5, z);
 					glVertex3f(vertex.x, 5, z+.01);
@@ -289,7 +302,6 @@ struct _Parabola {
 
 struct VoronoiArc : public _Parabola {
 	vector<VoronoiArc*> children;
-	VoronoiArc* parent;
 
 	VoronoiArc(float a, float b, float c, Orientation o) : _Parabola(a, b, c, o) {}
 	VoronoiArc(_Point2D focus, _Point2D vertex) : _Parabola(focus, vertex) {}
@@ -306,7 +318,7 @@ struct VoronoiArc : public _Parabola {
 //			cout << endl;
 
 			if(roots[0].x > end) end = roots[0].x; // stop where new parabola is
-			_Parabola::draw(parent);
+			_Parabola::draw();
 			start = roots[1].x; // restart where new one reconnects
 			if(start > e) start = e;
 			children[n]->draw(end, start);
@@ -315,16 +327,17 @@ struct VoronoiArc : public _Parabola {
 			// will always end it. Because the children are "tighter"
 		}
 		end = e;
-		_Parabola::draw(parent);
-
-//		_Parabola::draw();
-//		for(int n = 0; n < children.size(); n++) children[n]->draw(s, e);
-		// draw self only in places not covered by children
+		_Parabola::draw();
 	}
 
 	void recalculate(_Point2D focus, float sweepline) {
 		_Parabola::recalculate(focus, sweepline);
-		for(int n = 0; n < children.size(); n++) children[n]->recalculate(children[n]->getFocus(), sweepline);
+
+		for(vector<VoronoiArc*>::iterator it = children.begin(); it != children.end(); ++it) {
+			VoronoiArc* next = *it;
+			next->recalculate(next->getFocus(), sweepline);
+			// remove if necessary
+		}
 	}
 
 	void add(VoronoiArc* child) {		
@@ -339,24 +352,17 @@ struct VoronoiArc : public _Parabola {
 		}
 
 		if(highest == -1) {
-			if(children.size() == 0) {
-				children.push_back(child);
-				child->parent = this;
-			}
+			if(children.size() == 0) children.push_back(child);
 			else {
 				bool broken = false;
 				for(int n = 0; n < children.size(); n++) {
 					if(child->getVertex().z < children[n]->getVertex().z) {
 						children.insert(children.begin()+n, child);
-						child->parent = this;
 						broken = true;
 						break;
 					}
 				}
-				if(!broken) {
-					children.push_back(child);
-					child->parent = this;
-				}
+				if(!broken) children.push_back(child);
 			}
 		}
 		else children[highest]->add(child);
@@ -380,3 +386,5 @@ class Voronoi {
 		VoronoiArc* beachline; // root
 		float sweepline;
 };
+
+#endif

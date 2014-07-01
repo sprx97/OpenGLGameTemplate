@@ -11,6 +11,9 @@
 
 using namespace std;
 
+vector<_Parabola*> allarcs;
+/* UGLY GLOBAL*/
+
 bool sortPoints(_Point2D p1, _Point2D p2) { return p1.x < p2.x; }
 Voronoi::Voronoi(int numpoints) {
 	beachline = NULL;
@@ -52,7 +55,7 @@ void Voronoi::step() {
 	// moves sweepline and gets next event
 
 	VoronoiArc* newarc = new VoronoiArc(_Point2D(next.x, next.z), sweepline);
-	newarc->parent = NULL;
+	allarcs.push_back(newarc);
 	if(beachline == NULL) beachline = newarc;
 	else {
 		beachline->recalculate(beachline->getFocus(), sweepline);
