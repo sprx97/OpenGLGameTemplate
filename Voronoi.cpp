@@ -74,6 +74,7 @@ void Voronoi::step() {
 		if(!broken) allarcs.push_back(newarc);
 	}
 
+	setStartEnd();
 }
 
 void Voronoi::draw() {
@@ -97,7 +98,15 @@ void Voronoi::draw() {
 	glEnd();
 	// sweepline
 
-// ************** DRAWING ONLY THE CORRECT PARTS OF THE ARCS
+	for(int n = 0; n < allarcs.size(); n++) {
+		allarcs[n]->draw();
+	}
+
+	glEnable(GL_COLOR_MATERIAL);
+}
+
+void Voronoi::setStartEnd() {
+	vector<_Parabola*> newallarcs;
 
 	if(allarcs.size() == 0) return;
 
@@ -128,37 +137,43 @@ void Voronoi::draw() {
 		if(nextArcIndex == -1) {
 			if(myarc->isInfinite()) break;
 			myarc->end = max_point;
-			myarc->draw();
+			_Parabola* cpy = (_Parabola*)malloc(sizeof(_Parabola));
+			memcpy(cpy, myarc, sizeof(_Parabola));
+			newallarcs.push_back(cpy);
 			break;
 		} // safety valve
 
 		myarc->end = intersect;
-//		cout << myarc->start << " " << myarc->end << endl;
-		myarc->draw();
+		_Parabola* cpy = (_Parabola*)malloc(sizeof(_Parabola));
+		memcpy(cpy, myarc, sizeof(_Parabola));
+		newallarcs.push_back(cpy);
 		myarc = allarcs[nextArcIndex];
 		myarc->start = intersect;
 		last_point = intersect;
 	} // jumps arcs until it reaches the end
 
 	for(int n = 0; n < allarcs.size(); n++) {
-		if(allarcs[n]->isInfinite()) allarcs[n]->draw();
+		if(allarcs[n]->isInfinite()) {
+			_Parabola* cpy = (_Parabola*)malloc(sizeof(_Parabola));
+			memcpy(cpy, allarcs[n], sizeof(_Parabola));	
+			
+			if(newallarcs.size() == 0) {
+				newallarcs.push_back(cpy);
+			}
+			else {
+				bool broken = false;
+				for(int n = 0; n < newallarcs.size(); n++) {
+					if(cpy->getFocus().z < newallarcs[n]->getFocus().z) {
+						newallarcs.insert(newallarcs.begin()+n, cpy);
+						broken = true;
+						break;
+					}		
+				}
+				if(!broken) newallarcs.push_back(cpy);
+			}
+			// need to split the intersecting parabola
+		}
 	} // draws infinite parabola(s)
 
-//	setStartEnd();
-
-//	for(int n = 0; n < allarcs.size(); n++) {
-//		allarcs[n]->draw();
-//	}
-
-	glEnable(GL_COLOR_MATERIAL);
-}
-
-void Voronoi::setStartEnd() {
-	vector<_Parabola*> newallarcs;
-
-
-
-
 	allarcs = newallarcs; // replaces
-//	cout << allarcs.size() << endl << endl;
 }
