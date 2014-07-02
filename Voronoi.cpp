@@ -115,14 +115,10 @@ void Voronoi::draw() {
 	while(last_point < max_point) {
 		float intersect = max_point;
 		for(int n = 0; n < allarcs.size(); n++) {
-			if(allarcs[n]->isInfinite()) {
-				allarcs[n]->draw();
-				continue;
-			}
 			if(allarcs[n] == myarc) continue;
 			vector<_Point2D> roots = myarc->getIntersection(*(allarcs[n]));
 			for(int r = 0; r < roots.size(); r++) {
-				if(roots[r].x > last_point &&  roots[r].x < intersect) {
+				if(roots[r].x > last_point &&  roots[r].x < intersect && !allarcs[n]->isInfinite()) {
 					intersect = roots[r].x;
 					nextArcIndex = n;
 				}
@@ -130,6 +126,7 @@ void Voronoi::draw() {
 		} // finds the next intersection along the arc
 
 		if(nextArcIndex == -1) {
+			if(myarc->isInfinite()) break;
 			myarc->end = max_point;
 			myarc->draw();
 			break;
@@ -143,5 +140,25 @@ void Voronoi::draw() {
 		last_point = intersect;
 	} // jumps arcs until it reaches the end
 
+	for(int n = 0; n < allarcs.size(); n++) {
+		if(allarcs[n]->isInfinite()) allarcs[n]->draw();
+	} // draws infinite parabola(s)
+
+//	setStartEnd();
+
+//	for(int n = 0; n < allarcs.size(); n++) {
+//		allarcs[n]->draw();
+//	}
+
 	glEnable(GL_COLOR_MATERIAL);
+}
+
+void Voronoi::setStartEnd() {
+	vector<_Parabola*> newallarcs;
+
+
+
+
+	allarcs = newallarcs; // replaces
+//	cout << allarcs.size() << endl << endl;
 }

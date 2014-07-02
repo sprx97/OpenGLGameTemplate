@@ -313,6 +313,7 @@ class Voronoi {
 		Voronoi(int numpoints);
 		void draw();
 		void step();
+		void setStartEnd();
 		_Point2D circumcenter(_Point2D p1, _Point2D p2, _Point2D p3);
 	private:
 		deque<_Point2D> events;
