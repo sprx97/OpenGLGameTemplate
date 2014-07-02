@@ -16,7 +16,7 @@ vector<_Parabola*> allarcs;
 
 bool sortPoints(_Point2D p1, _Point2D p2) { return p1.x < p2.x; }
 Voronoi::Voronoi(int numpoints) {
-	beachline = NULL;
+//	beachline = NULL;
 	for(int n = 0; n < numpoints; n++) {
 		_Point2D pt(((float)rand()/RAND_MAX) * mapwidth - (mapwidth/2.0), ((float)rand()/RAND_MAX) * mapheight - (mapheight/2.0));
 		sites.push_back(pt);
@@ -54,13 +54,26 @@ void Voronoi::step() {
 	events.pop_front();
 	// moves sweepline and gets next event
 
+	for(int n = 0; n < allarcs.size(); n++) ((VoronoiArc*)allarcs[n])->recalculate(allarcs[n]->getFocus(), sweepline);
+
 	VoronoiArc* newarc = new VoronoiArc(_Point2D(next.x, next.z), sweepline);
-	allarcs.push_back(newarc);
-	if(beachline == NULL) beachline = newarc;
-	else {
-		beachline->recalculate(beachline->getFocus(), sweepline);
-		beachline->add(newarc);
+	if(allarcs.size() == 0) {
+		newarc->start = -mapwidth/2.0;
+		newarc->end = mapwidth/2.0;
+		allarcs.push_back(newarc);
 	}
+	else {
+		bool broken = false;
+		for(int n = 0; n < allarcs.size(); n++) {
+			if(newarc->getFocus().z < allarcs[n]->getFocus().z) {
+				allarcs.insert(allarcs.begin()+n, newarc);
+				broken = true;
+				break;
+			}		
+		}
+		if(!broken) allarcs.push_back(newarc);
+	}
+
 }
 
 void Voronoi::draw() {
@@ -84,15 +97,51 @@ void Voronoi::draw() {
 	glEnd();
 	// sweepline
 
-	if(beachline != NULL) beachline->draw(-mapwidth/2.0, mapwidth/2.0);
+// ************** DRAWING ONLY THE CORRECT PARTS OF THE ARCS
 
-//	glColor4f(0.0, 1.0, 1.0, 1.0);
-//	for(int n = 1; n < beachline.size(); n++) {
-//		vector<_Point2D> roots = beachline[n].getIntersection(beachline[n-1]);
-//		roots[0].draw();
-//		roots[1].draw();		
-//	} // intersections
+	if(allarcs.size() == 0) return;
+
+	_Parabola* myarc = allarcs[0];
+	for(int n = 1; n < allarcs.size(); n++) {
+		if(allarcs[n]->isInfinite()) continue;
+		else if(myarc->isInfinite()) myarc = allarcs[n];
+		else if(myarc->getVal(-mapwidth/2.0) < allarcs[n]->getVal(-mapwidth/2.0)) myarc = allarcs[n];
+	} // start at far left - highest arc
+
+	int nextArcIndex = -1;
+	float last_point = -mapwidth/2.0; // start
+	float max_point = mapwidth/2.0;
+	myarc->start = last_point;
+	while(last_point < max_point) {
+		float intersect = max_point;
+		for(int n = 0; n < allarcs.size(); n++) {
+			if(allarcs[n]->isInfinite()) {
+				((VoronoiArc*)allarcs[n])->draw();
+				continue;
+			}
+			if(allarcs[n] == myarc) continue;
+			vector<_Point2D> roots = myarc->getIntersection(*(allarcs[n]));
+			for(int r = 0; r < roots.size(); r++) {
+				if(roots[r].x > last_point &&  roots[r].x < intersect) {
+					intersect = roots[r].x;
+					nextArcIndex = n;
+				}
+			}
+		} // finds the next intersection along the arc
+
+		if(nextArcIndex == -1) {
+			myarc->end = max_point;
+			((VoronoiArc*)myarc)->draw();
+			break;
+		} // safety valve
+
+		myarc->end = intersect;
+//		cout << myarc->start << " " << myarc->end << endl;
+		((VoronoiArc*)myarc)->draw();
+		myarc = allarcs[nextArcIndex];
+		myarc->start = intersect;
+		last_point = intersect;
+	} // jumps arcs until it reaches the end
 
 	glEnable(GL_COLOR_MATERIAL);
-
 }

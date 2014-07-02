@@ -79,6 +79,10 @@ struct _Parabola {
 		directrix = getDirectrix();
 	}
 
+	bool isInfinite() {
+		return vertex.equals(focus);
+	}
+
 	void construct(_Point2D focus, _Point2D vertex) {
 		if(focus.equals(vertex)) {
 			this->focus = focus;
@@ -234,7 +238,7 @@ struct _Parabola {
 		return roots; // return appropriate root
 	}
 
-	void draw(int highest = 0) {
+	void draw() {
 /*		cout << a << " " << b << " " << c << endl;
 		cout << focus.x << " " << focus.z << endl;
 		cout << vertex.x << " " << vertex.z << endl;
@@ -308,9 +312,28 @@ struct VoronoiArc : public _Parabola {
 	VoronoiArc(_Point2D focus, float directrix, Orientation o = VERTICAL) : _Parabola(focus, directrix, o) {}
 	// same constructors as a parabola
 
-	void draw(float s, float e) {
-		start = end = s;
-		for(int n = 0; n < children.size(); n++) {
+	void draw() {
+
+/*		start = s; end = e;
+		VoronoiArc* nextIntersect = NULL;
+		for(int n = 0; n < allarcs.size(); n++) {
+			if(allarcs[n] == this) continue;
+			if(nextIntersect == NULL) nextIntersect = (VoronoiArc*)(allarcs[n]);
+
+			vector<_Point2D> roots1 = getIntersection(*(nextIntersect));
+			vector<_Point2D> roots2 = getIntersection(*(allarcs[n]));
+
+			if(roots1[0].x < roots2[0].x) {
+				nextIntersect = (VoronoiArc*)(allarcs[n]);
+			}
+
+//			cout << allarcs[n]->getVertex().z << endl;
+		}*/
+//		if(nextIntersect != NULL)
+//			cout << nextIntersect->getFocus().x << " " << nextIntersect->getFocus().z << endl;
+//		cout << endl;
+
+/*		for(int n = 0; n < children.size(); n++) {
 			vector<_Point2D> roots = getIntersection(*(children[n]));
 
 //			cout << roots[0].x << "\t" << roots[0].z << endl;
@@ -325,38 +348,20 @@ struct VoronoiArc : public _Parabola {
 
 			// roots[0] will always start the parabola and roots[1]
 			// will always end it. Because the children are "tighter"
-		}
-		end = e;
+		}*/
 		_Parabola::draw();
-	}
-
-	void findNewParent(VoronoiArc* child) {
-		for(int n = 0; n < allarcs.size(); n++) {
-
-		}
 	}
 
 	void recalculate(_Point2D focus, float sweepline) {
 		_Parabola::recalculate(focus, sweepline);
 
-		for(vector<VoronoiArc*>::iterator it = children.begin(); it != children.end(); ++it) {
-			VoronoiArc* next = *it;
-			next->recalculate(next->getFocus(), sweepline);
-			// remove if necessary
-		}
-
-		if(children.size() > 1) {
-			for(int n = 1; n < children.size(); n++) {
-				vector<_Point2D> roots = getIntersection(*(children[n-1]));
-				vector<_Point2D> roots2 = getIntersection(*(children[n]));
-				if(roots2[0].x < roots[1].x) {
-					cout << "overlapping: " << roots2[0].x << " " << roots[1].x << endl;
-					// children[n] needs to switch parents
-				}
-			}
-		}
+//		for(vector<VoronoiArc*>::iterator it = children.begin(); it != children.end(); ++it) {
+//			VoronoiArc* next = *it;
+//			next->recalculate(next->getFocus(), sweepline);
+//			// remove if necessary
+//		}
 	}
-
+/*
 	void add(VoronoiArc* child) {		
 		int highest = -1; // default if this node is the highest collision
 		float intersect = getIntersection(*child)[0].z;
@@ -383,7 +388,7 @@ struct VoronoiArc : public _Parabola {
 			}
 		}
 		else children[highest]->add(child);
-	}
+	}*/
 };
 
 struct _Edge {
@@ -400,7 +405,6 @@ class Voronoi {
 		deque<_Point2D> events;
 		vector<_Point2D> sites;
 		vector<_Edge> edges;
-		VoronoiArc* beachline; // root
 		float sweepline;
 };
 
