@@ -54,9 +54,9 @@ void Voronoi::step() {
 	events.pop_front();
 	// moves sweepline and gets next event
 
-	for(int n = 0; n < allarcs.size(); n++) ((VoronoiArc*)allarcs[n])->recalculate(allarcs[n]->getFocus(), sweepline);
+	for(int n = 0; n < allarcs.size(); n++) allarcs[n]->recalculate(allarcs[n]->getFocus(), sweepline);
 
-	VoronoiArc* newarc = new VoronoiArc(_Point2D(next.x, next.z), sweepline);
+	_Parabola* newarc = new _Parabola(_Point2D(next.x, next.z), sweepline);
 	if(allarcs.size() == 0) {
 		newarc->start = -mapwidth/2.0;
 		newarc->end = mapwidth/2.0;
@@ -116,7 +116,7 @@ void Voronoi::draw() {
 		float intersect = max_point;
 		for(int n = 0; n < allarcs.size(); n++) {
 			if(allarcs[n]->isInfinite()) {
-				((VoronoiArc*)allarcs[n])->draw();
+				allarcs[n]->draw();
 				continue;
 			}
 			if(allarcs[n] == myarc) continue;
@@ -131,13 +131,13 @@ void Voronoi::draw() {
 
 		if(nextArcIndex == -1) {
 			myarc->end = max_point;
-			((VoronoiArc*)myarc)->draw();
+			myarc->draw();
 			break;
 		} // safety valve
 
 		myarc->end = intersect;
 //		cout << myarc->start << " " << myarc->end << endl;
-		((VoronoiArc*)myarc)->draw();
+		myarc->draw();
 		myarc = allarcs[nextArcIndex];
 		myarc->start = intersect;
 		last_point = intersect;
