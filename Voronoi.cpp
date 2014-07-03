@@ -29,7 +29,10 @@ Voronoi::Voronoi(int numpoints) {
 	sweepline = -mapwidth/2.0;
 }
 
-_Point2D Voronoi::circumcenter(_Point2D p1, _Point2D p2, _Point2D p3) {
+float distForm(_Point2D p1, _Point2D p2) {
+	return sqrt((p1.x-p2.x)*(p1.x-p2.x) + (p1.z-p2.z)*(p1.z-p2.z));
+}
+_Circle Voronoi::circle(_Point2D p1, _Point2D p2, _Point2D p3) {
 	_Point2D point1((p1.x+p2.x)/2.0, (p1.z+p2.z)/2.0);
 	_Point2D point2((p1.x+p3.x)/2.0, (p1.z+p3.z)/2.0);
 	float slope1 = -1/((p2.z-p1.z)/(p2.x-p1.x));
@@ -44,10 +47,14 @@ _Point2D Voronoi::circumcenter(_Point2D p1, _Point2D p2, _Point2D p3) {
 
 	float x = -(b2-b1)/(m2-m1);
 	float y = -(m1*b2 - b1*m2)/(m2-m1);
-	return _Point2D(x, y);
+	_Point2D center(x, y);
+
+	return _Circle(center, distForm(p1, center));
 }
 
 void Voronoi::step() {
+	circle(sites[0], sites[1], sites[2]);
+
 	if(events.size() == 0) return;
 	sweepline = events[0].x;
 	_Point2D next = events[0];
@@ -90,6 +97,15 @@ void Voronoi::draw() {
 	} // draws the sites
 
 	glColor4f(0.0, 1.0, 0.0, 1.0);
+	for(int n = 0; n < circleEvents.size(); n++) {
+		glTranslatef(circleEvents[n].x, 5, circleEvents[n].z);
+		GLUquadricObj* pt = gluNewQuadric();
+		gluSphere(pt, .25, 5, 5);
+		gluDeleteQuadric(pt);
+		glTranslatef(-circleEvents[n].x, -5, -circleEvents[n].z);
+	} // draws the circle events
+
+	glColor4f(0.0, 0.0, 1.0, 1.0);
 	glBegin(GL_LINES);
 		for(int z = -mapwidth/2.0; z < mapwidth/2.0; z++) {
 			glVertex3f(sweepline, 5, z);
@@ -98,9 +114,7 @@ void Voronoi::draw() {
 	glEnd();
 	// sweepline
 
-	for(int n = 0; n < allarcs.size(); n++) {
-		allarcs[n]->draw();
-	}
+	for(int n = 0; n < allarcs.size(); n++) allarcs[n]->draw();
 
 	glEnable(GL_COLOR_MATERIAL);
 }
@@ -162,14 +176,38 @@ void Voronoi::setStartEnd() {
 			}
 			else {
 				bool broken = false;
+				int intersect = -1;
 				for(int n = 0; n < newallarcs.size(); n++) {
 					if(cpy->getFocus().z < newallarcs[n]->getFocus().z) {
 						newallarcs.insert(newallarcs.begin()+n, cpy);
+						intersect = n;
 						broken = true;
 						break;
 					}		
 				}
-				if(!broken) newallarcs.push_back(cpy);
+				if(!broken) {
+					intersect = newallarcs.size()-1;
+					newallarcs.push_back(cpy);
+				}
+
+				int lowest = 0;
+				for(int n = 1; n < newallarcs.size(); n++) {
+					if(newallarcs[lowest]->isInfinite()) lowest = n;
+					if(newallarcs[n]->isInfinite()) continue;
+					if(cpy->getIntersection(*(newallarcs[lowest]))[0].z < cpy->getIntersection(*(newallarcs[n]))[0].z) {
+						lowest = n;
+					}
+				}
+				if(newallarcs[lowest]->isInfinite()) continue;
+//				cout << "highest at " <<  cpy->getIntersection(*(newallarcs[lowest]))[0].x << " " << cpy->getIntersection(*(newallarcs[lowest]))[0].z << endl;
+
+				float breakpoint = cpy->getIntersection(*(newallarcs[lowest]))[0].x;
+				
+				_Parabola* righthalf = (_Parabola*)malloc(sizeof(_Parabola));
+				memcpy(righthalf, newallarcs[lowest], sizeof(_Parabola));
+				newallarcs[lowest]->end = breakpoint;
+				righthalf->start = breakpoint;
+				newallarcs.insert(newallarcs.begin()+intersect+1, righthalf);
 			}
 			// need to split the intersecting parabola
 		}

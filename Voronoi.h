@@ -304,6 +304,16 @@ struct _Parabola {
 	}
 };
 
+struct  _Circle {
+	_Point2D center;
+	float radius;
+
+	_Circle(_Point2D c, float r) {
+		center = c;
+		radius = r;
+	}
+};
+
 struct _Edge {
 	_Point2D start, end;
 };
@@ -314,10 +324,11 @@ class Voronoi {
 		void draw();
 		void step();
 		void setStartEnd();
-		_Point2D circumcenter(_Point2D p1, _Point2D p2, _Point2D p3);
+		_Circle circle(_Point2D p1, _Point2D p2, _Point2D p3);
 	private:
 		deque<_Point2D> events;
 		vector<_Point2D> sites;
+		vector<_Point2D> circleEvents;
 		vector<_Edge> edges;
 		float sweepline;
 };
